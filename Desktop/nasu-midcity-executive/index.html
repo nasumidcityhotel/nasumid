@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>那須ミッドシティホテル専用AI｜役員会議・AI検索・料金戦略</title>
+  <meta name="description" content="那須ミッドシティホテル専用AI。役員会議同席、Google AI Mode/AI検索対策、Googleビジネスプロフィール運用、ダイナミックプライシング検討をNetlifyで動かせる管理画面。" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="brand-card">
+        <div class="brand-mark">N</div>
+        <div>
+          <div class="eyebrow">Executive AI</div>
+          <h1>那須ミッドシティホテル専用AI</h1>
+          <p>役員会議・AI検索・料金戦略のための専用画面</p>
+        </div>
+      </div>
+
+      <nav class="side-nav">
+        <a href="#overview">全体戦略</a>
+        <a href="#assistant">会議同席AI</a>
+        <a href="#checklist">AI検索チェック</a>
+        <a href="#pricing">料金シミュレーター</a>
+        <a href="#schema">構造化データ</a>
+        <a href="#notes">会議メモ</a>
+        <a href="#usage-guide">使用方法</a>
+      </nav>
+
+      <div class="info-card compact">
+        <div class="card-label">公式導線</div>
+        <a class="link-btn" target="_blank" rel="noreferrer" href="https://www.nasu-midcity.com/">公式ホームページ</a>
+        <a class="link-btn" target="_blank" rel="noreferrer" href="https://nasu-midcity-guide.netlify.app/">客室QR案内</a>
+      </div>
+
+      <div class="info-card compact">
+        <div class="card-label">このAIの役割</div>
+        <ul class="mini-list">
+          <li>役員会議で論点を整理</li>
+          <li>Google / AI検索の改善案を提案</li>
+          <li>米国ホテルAI動向を要約</li>
+          <li>価格戦略の叩き台を提示</li>
+        </ul>
+      </div>
+    </aside>
+
+    <main class="main">
+      <section class="hero" id="overview">
+        <div class="hero-copy">
+          <div class="badge">那須の拠点ホテル戦略</div>
+          <h2>「便利なビジネスホテル」から<br />「那須を動くための拠点ホテル」へ</h2>
+          <p>
+            この管理画面は、那須ミッドシティホテルの公式サイト・Googleビジネスプロフィール・AI検索対応・
+            ダイナミックプライシング検討を一つの視点で扱うための、Netlify配備前提の専用AIアプリです。
+          </p>
+          <div class="hero-actions">
+            <button class="primary-btn" data-fill-prompt="今週の役員会議向けに、那須ミッドシティホテルのAI検索強化・Google検索強化・料金戦略の重要論点を5項目に整理してください。">今週の会議論点を作る</button>
+            <button class="ghost-btn" data-fill-prompt="那須ミッドシティホテルが『那須の拠点ホテル』としてAI検索に強くなるための90日実行計画を作ってください。">90日計画を作る</button>
+          </div>
+        </div>
+        <div class="hero-panel">
+          <div class="stat-card">
+            <span>現サイトの主訴求</span>
+            <strong>駅近・朝食・ビジネス利便</strong>
+          </div>
+          <div class="stat-card">
+            <span>再定義キーワード</span>
+            <strong>那須の拠点ホテル</strong>
+          </div>
+          <div class="stat-card">
+            <span>優先運用先</span>
+            <strong>公式 / GBP / FAQ / QR / 口コミ</strong>
+          </div>
+        </div>
+      </section>
+
+      <section class="grid two-col">
+        <article class="panel">
+          <div class="panel-head">
+            <h3>現状サイトの観測</h3>
+            <span class="panel-tag">クロール反映</span>
+          </div>
+          <div id="site-audit" class="audit-list"></div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-head">
+            <h3>役員向けの重要示唆</h3>
+            <span class="panel-tag">戦略要約</span>
+          </div>
+          <div id="executive-insights" class="insight-stack"></div>
+        </article>
+      </section>
+
+      <section class="panel" id="assistant">
+        <div class="panel-head wide">
+          <div>
+            <h3>会議同席AI</h3>
+            <p class="sub">役員会議でそのまま使える、ホテル専用のアドバイザーAI</p>
+          </div>
+          <div class="tool-row">
+            <select id="mode-select">
+              <option value="board">役員会議</option>
+              <option value="ai-search">AI検索戦略</option>
+              <option value="google-search">Google検索 / SEO</option>
+              <option value="gbp">Googleビジネスプロフィール</option>
+              <option value="pricing">料金戦略</option>
+              <option value="us-hotels">米国ホテル事例</option>
+              <option value="free">自由相談</option>
+            </select>
+            <label class="checkbox">
+              <input type="checkbox" id="use-web" checked />
+              <span>最新Web調査を使う</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="prompt-chips" id="prompt-chips"></div>
+
+        <div class="assistant-layout">
+          <div class="assistant-input">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+              <label for="user-prompt" style="margin: 0;">相談内容</label>
+              <button id="voice-input-btn" class="icon-btn" title="音声入力"><i class="fas fa-microphone"></i> 音声入力</button>
+            </div>
+            <textarea id="user-prompt" rows="8" placeholder="例：Google AI Modeで『那須観光の拠点に便利なホテル』と聞かれた時に、那須ミッドシティホテルが選ばれるための施策を教えてください。"></textarea>
+
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+              <label for="meeting-context" style="margin: 0;">会議補足メモ（自動録音の内容もここに入ります）</label>
+              <button id="meeting-mode-btn" class="icon-btn" title="議事録モードをオンにする"><i class="fas fa-history"></i> 自動録音モード: OFF</button>
+            </div>
+            <textarea id="meeting-context" rows="5" placeholder="今月の稼働率、競合状況、役員の懸念点、直近の口コミ傾向などを貼り付けてください。"></textarea>
+
+            <div class="action-row">
+              <button id="ask-btn" class="primary-btn">専用AIに相談する</button>
+              <button id="clear-btn" class="ghost-btn">入力をクリア</button>
+            </div>
+          </div>
+
+            <div class="assistant-output">
+            <div class="output-meta">
+              <span id="status-pill" class="status-pill idle">待機中</span>
+              <span id="response-mode">モード: 役員会議</span>
+              <button id="speak-btn" class="icon-btn" title="回答を読み上げる" style="margin-left: auto; display: none;"><i class="fas fa-volume-up"></i> 読み上げ</button>
+            </div>
+            <div id="assistant-answer" class="answer-box">ここにAIの回答が表示されます。</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="grid two-col" id="checklist">
+        <article class="panel">
+          <div class="panel-head">
+            <h3>AI検索・Google検索チェックリスト</h3>
+            <span class="panel-tag">実行管理</span>
+          </div>
+          <div id="checklist-container" class="checklist"></div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-head">
+            <h3>優先ソース</h3>
+            <span class="panel-tag">更新確認先</span>
+          </div>
+          <div id="source-list" class="source-list"></div>
+        </article>
+      </section>
+
+      <section class="grid two-col" id="pricing">
+        <article class="panel">
+          <div class="panel-head">
+            <h3>ダイナミックプライシング簡易シミュレーター</h3>
+            <span class="panel-tag">叩き台</span>
+          </div>
+          <div class="form-grid">
+            <label>
+              稼働率（%）
+              <input id="occ-input" type="number" value="82" min="0" max="100" />
+            </label>
+            <label>
+              現在ADR（円）
+              <input id="adr-input" type="number" value="8450" min="0" step="100" />
+            </label>
+            <label>
+              競合平均との差（円）
+              <input id="comp-input" type="number" value="1200" step="100" />
+            </label>
+            <label>
+              イベント強度（0-5）
+              <input id="event-input" type="number" value="2" min="0" max="5" />
+            </label>
+            <label>
+              予約ペース指数（-20〜20）
+              <input id="pace-input" type="number" value="6" min="-20" max="20" />
+            </label>
+            <label>
+              到着まで日数
+              <input id="lead-input" type="number" value="9" min="0" max="365" />
+            </label>
+          </div>
+          <div class="action-row top-gap">
+            <button id="simulate-btn" class="primary-btn">推奨価格を試算</button>
+          </div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-head">
+            <h3>試算結果</h3>
+            <span class="panel-tag">運用判断用</span>
+          </div>
+          <div id="pricing-output" class="pricing-output"></div>
+        </article>
+      </section>
+
+      <section class="panel" id="schema">
+        <div class="panel-head wide">
+          <div>
+            <h3>構造化データたたき台</h3>
+            <p class="sub">GoogleとAIにホテル定義を機械可読で伝えるための雛形</p>
+          </div>
+          <button id="copy-schema-btn" class="ghost-btn">JSON-LDをコピー</button>
+        </div>
+        <pre id="schema-box" class="code-box"></pre>
+      </section>
+
+      <section class="panel" id="notes">
+        <div class="panel-head wide">
+          <div>
+            <h3>会議メモ</h3>
+            <p class="sub">ブラウザに保存される簡易メモ</p>
+          </div>
+          <div class="action-row no-wrap">
+            <button id="save-notes-btn" class="primary-btn">保存</button>
+            <button id="clear-notes-btn" class="ghost-btn">消去</button>
+          </div>
+        </div>
+        <textarea id="notes-area" rows="10" placeholder="会議で出た論点、次回宿題、役員コメントなどを保存できます。"></textarea>
+      </section>
+
+      <section class="panel" id="usage-guide">
+        <div class="panel-head wide">
+          <div>
+            <h3>会議AIの使用方法</h3>
+            <p class="sub">那須ミッドシティホテル専用AIを最大限に活用するためのガイド</p>
+          </div>
+          <span class="panel-tag">ユーザーマニュアル</span>
+        </div>
+
+        <div class="grid two-col">
+          <div class="audit-item">
+            <h4><i class="fas fa-robot"></i> 1. 会議同席AIの活用</h4>
+            <ul class="mini-list" style="margin-top: 10px;">
+              <li><strong>モード選択:</strong> 議題（AI検索、GBP、料金戦略など）に合わせてモードを切り替えます。</li>
+              <li><strong>相談内容:</strong> 具体的な問いを入力します。「今週の会議論点を作る」ボタンなどの活用も有効です。</li>
+              <li><strong>会議補足メモ:</strong> 今月の稼働データや、役員の懸念事項を貼り付けると回答精度が劇的に向上します。</li>
+              <li><strong>最新Web調査:</strong> チェックを入れると、最新の競合動向やトレンドを含めた回答を行います。</li>
+            </ul>
+          </div>
+
+          <div class="audit-item">
+            <h4><i class="fas fa-calculator"></i> 2. 料金シミュレーター</h4>
+            <ul class="mini-list" style="margin-top: 10px;">
+              <li><strong>数値入力:</strong> 稼働率やADR、予約ペース指数などの現在の状況を入力します。</li>
+              <li><strong>推奨価格を試算:</strong> ボタンを押すと、RevPAR（販売可能客室1室あたりの売上）を最大化するための改定案をAIが算出します。</li>
+              <li><strong>判断の参考に:</strong> 提示される「判断理由」を確認し、最終的な料金設定の叩き台として活用してください。</li>
+            </ul>
+          </div>
+
+          <div class="audit-item">
+            <h4><i class="fas fa-check-double"></i> 3. AI検索・Google対策</h4>
+            <ul class="mini-list" style="margin-top: 10px;">
+              <li><strong>サイト観測:</strong> 現在の公式サイトがAI検索（Gemini等）にどう認識されているかを確認します。</li>
+              <li><strong>実行管理:</strong> チェックリストに従い、「Googleビジネスプロフィール」や「構造化データ」の更新を管理します。</li>
+              <li><strong>優先ソース:</strong> AIが学習源としている主要サイトの更新状況をチェックします。</li>
+            </ul>
+          </div>
+
+          <div class="audit-item">
+            <h4><i class="fas fa-sticky-note"></i> 4. 会議メモと保存</h4>
+            <ul class="mini-list" style="margin-top: 10px;">
+              <li><strong>決定事項の記録:</strong> 会議中に決まったことや次回の宿題を即座にメモします。</li>
+              <li><strong>保存機能:</strong> 「保存」ボタンを押すと、ブラウザを閉じても内容は保持されます（LocalStorageを使用）。</li>
+              <li><strong>データの消去:</strong> 会議終了後や情報をリセットしたい場合は「消去」でクリアできます。</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="./knowledge.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>
