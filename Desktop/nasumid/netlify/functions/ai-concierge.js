@@ -79,6 +79,14 @@ exports.handler = async (event) => {
           generationConfig: {
             temperature: 0.7,
             maxOutputTokens: 300,
+            responseModalities: ["TEXT", "AUDIO"],
+            speechConfig: {
+              voiceConfig: {
+                prebuiltVoiceConfig: {
+                  voiceName: "Aoede"
+                }
+              }
+            }
           }
         })
       }
@@ -91,12 +99,25 @@ exports.handler = async (event) => {
       return { statusCode: 500, body: JSON.stringify({ error: data.error.message }) };
     }
 
-    const answer = data.candidates[0].content.parts[0].text;
+    const parts = data.candidates[0].content.parts;
+    let answer = "";
+    let audioBase64 = null;
+    let audioMimeType = null;
+
+    for (const part of parts) {
+      if (part.text) {
+        answer += part.text;
+      }
+      if (part.inlineData && part.inlineData.mimeType.startsWith("audio/")) {
+        audioBase64 = part.inlineData.data;
+        audioMimeType = part.inlineData.mimeType;
+      }
+    }
 
     return {
       statusCode: 200,
       headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
-      body: JSON.stringify({ answer })
+      body: JSON.stringify({ answer, audio: audioBase64, mimeType: audioMimeType })
     };
 
   } catch (err) {

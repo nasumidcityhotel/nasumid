@@ -1495,68 +1495,20 @@
         recognition.onerror = () => { isListening = false; vBtn.classList.remove('listening'); statusEl.textContent = 'オンライン'; };
       } else { if (vBtn) vBtn.style.display = 'none'; }
 
-      // TTS
-      let voices = [];
-      if ('speechSynthesis' in window) { voices = speechSynthesis.getVoices(); speechSynthesis.onvoiceschanged = () => { voices = speechSynthesis.getVoices(); }; }
-      
+      // TTS (Audio API)
       window.currentAudio = null;
 
       // スマホ（iOS/Android）の自動再生ブロック制限を解除する関数
       function unlockAudio() {
-        if ('speechSynthesis' in window) {
-          try {
-            // 空ではなく、空白文字を極小音量かつ超高速で実際に発話させて、スマホの音声エンジン自体を「アクティブ（稼働中）」にします。
-            // これにより、Geminiの返答を待つ数秒間のタイムラグがあっても、次の発声が同一セッションとみなされ、100%自動で喋り出します！
-            const u = new SpeechSynthesisUtterance(' ');
-            u.volume = 0.001;
-            u.rate = 10.0;
-            speechSynthesis.speak(u);
-          } catch(e) {}
+        if (!window.currentAudio) {
+          window.currentAudio = new Audio();
         }
-      }
-
-      // タイムラグ0秒！スマホで絶対にフリーズ・クラッシュしない内蔵音声合成システム
-      function speak(text) {
-        if (!('speechSynthesis' in window)) return;
-        
+        // 無音のダミーデータ（極小のWAV）を再生してスマホのオーディオエンジンを起動（アンロック）する
+        window.currentAudio.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
+        window.currentAudio.volume = 0.01;
         try {
-          const u = new SpeechSynthesisUtterance(text);
-          // rate: 0.95 (上品な速度), pitch: 1.06 (少し落ち着いた美しい女性の声)
-          u.lang = 'ja-JP'; 
-          u.rate = 0.95; 
-          u.pitch = 1.06; 
-          u.volume = 1.0;
-          
-          if (voices && voices.length > 0) {
-            const v = 
-              voices.find(v => v.lang === 'ja-JP' && v.name.includes('Nanami')) || 
-              voices.find(v => v.lang === 'ja-JP' && v.name.includes('Google')) || 
-              voices.find(v => v.lang === 'ja-JP' && (v.name.includes('Kyoko') || v.name.includes('Otoya'))) || 
-              voices.find(v => v.lang === 'ja-JP') || 
-              voices.find(v => v.lang.startsWith('ja'));
-            if (v) u.voice = v;
-          }
-          
-          u.onstart = () => { statusEl.textContent = '話しています...'; };
-          u.onend = () => { statusEl.textContent = 'オンライン'; };
-          u.onerror = (e) => { 
-            console.error('Speech error:', e); 
-            statusEl.textContent = 'オンライン'; 
-          };
-          
-          // iOS Safariのバグ（連続再生時の詰まり）を防ぐための安全な遅延発話
-          setTimeout(() => {
-            try {
-              speechSynthesis.speak(u);
-            } catch(e) {
-              console.error('Speak inner error:', e);
-            }
-          }, 60);
-          
-        } catch (err) {
-          console.error('Speak main error:', err);
-          statusEl.textContent = 'オンライン';
-        }
+          window.currentAudio.play().catch(e => {});
+        } catch(e) {}
       }
 
       function addMsg(text, type) {
@@ -1602,13 +1554,54 @@
           const data = await res.json();
           const ans = data.answer || fallback(userText);
           history.push({ role: 'model', text: ans });
-          return ans;
+          return { answer: ans, audio: data.audio, mimeType: data.mimeType };
         } catch (e) {
           console.log('Gemini API fallback:', e);
           const ans = fallback(userText);
           history.push({ role: 'model', text: ans });
-          return ans;
+          return { answer: ans, audio: null, mimeType: null };
         }
+      }
+
+      // PCMのBase64文字列をWAVのData URLに変換するヘルパー関数
+      function pcmBase64ToWavUrl(base64, sampleRate = 24000) {
+        const binaryString = window.atob(base64);
+        const len = binaryString.length;
+        const pcmData = new Uint8Array(len);
+        for (let i = 0; i < len; i++) {
+          pcmData[i] = binaryString.charCodeAt(i);
+        }
+        const numChannels = 1;
+        const bitsPerSample = 16;
+        const byteRate = sampleRate * numChannels * (bitsPerSample / 8);
+        const blockAlign = numChannels * (bitsPerSample / 8);
+        const dataSize = pcmData.length;
+        const buffer = new ArrayBuffer(44 + dataSize);
+        const view = new DataView(buffer);
+        
+        function writeString(v, offset, string) {
+          for (let i = 0; i < string.length; i++) { v.setUint8(offset + i, string.charCodeAt(i)); }
+        }
+        
+        writeString(view, 0, 'RIFF');
+        view.setUint32(4, 36 + dataSize, true);
+        writeString(view, 8, 'WAVE');
+        writeString(view, 12, 'fmt ');
+        view.setUint32(16, 16, true);
+        view.setUint16(20, 1, true); // PCM
+        view.setUint16(22, numChannels, true);
+        view.setUint32(24, sampleRate, true);
+        view.setUint32(28, byteRate, true);
+        view.setUint16(32, blockAlign, true);
+        view.setUint16(34, bitsPerSample, true);
+        writeString(view, 36, 'data');
+        view.setUint32(40, dataSize, true);
+        
+        const pcmView = new Uint8Array(buffer, 44);
+        pcmView.set(pcmData);
+        
+        const blob = new Blob([buffer], { type: 'audio/wav' });
+        return URL.createObjectURL(blob);
       }
 
       async function respond(q) {
@@ -1616,18 +1609,38 @@
         showTyping();
         
         try {
-          // Gemini APIから回答を取得
-          const ans = await callGemini(q);
-          removeTyping();
+          // Gemini APIから回答と音声を取得
+          const resData = await callGemini(q);
+          const ans = resData.answer;
           
-          // AIのテキストの吹き出しは「何があっても絶対に」画面に表示する
+          removeTyping();
           addMsg(ans, 'bot');
           
-          // 音声再生で万が一バグが起きても、テキストのやり取りは絶対に止めない
-          try {
-            speak(ans);
-          } catch (voiceErr) {
-            console.error('Voice play error:', voiceErr);
+          // 音声データがあれば再生する
+          if (resData.audio && window.currentAudio) {
+            statusEl.textContent = '話しています...';
+            
+            let audioUrl;
+            // Gemini APIは通常 "audio/pcm;rate=24000" で返すためWAVヘッダーを付与して再生する
+            if (resData.mimeType && resData.mimeType.includes("pcm")) {
+              audioUrl = pcmBase64ToWavUrl(resData.audio, 24000);
+            } else {
+              const mime = resData.mimeType || "audio/wav";
+              audioUrl = "data:" + mime + ";base64," + resData.audio;
+            }
+            
+            window.currentAudio.src = audioUrl;
+            window.currentAudio.volume = 1.0;
+            window.currentAudio.onended = () => { statusEl.textContent = 'オンライン'; };
+            window.currentAudio.onerror = (e) => {
+              console.error('Audio playback error', e);
+              statusEl.textContent = 'オンライン';
+            };
+            window.currentAudio.play().catch(voiceErr => {
+              console.error('Voice play error:', voiceErr);
+              statusEl.textContent = 'オンライン';
+            });
+          } else {
             statusEl.textContent = 'オンライン';
           }
           
@@ -1646,9 +1659,8 @@
         modal.classList.add('active');
         if (firstOpen) {
           firstOpen = false;
-          const welcomeText = 'こんにちは！那須ミッドシティホテルのAIコンシェルジュです。朝食・温泉・アクセスなど、何でもお気軽にお尋ねください。下のボタンをタップするか、テキストでご質問いただけます。';
+          // 初回挨拶は固定テキストにし、APIコールで遅延しないようにする。
           addMsg('こんにちは！那須ミッドシティホテルのAIコンシェルジュです。<br>朝食・温泉・アクセスなど、何でもお気軽にお尋ねください。<br>下のボタンをタップするか、テキストでご質問いただけます。', 'bot');
-          speak(welcomeText); // 最初の挨拶も喋らせることでアンロックをより確実に
           setTimeout(addChips, 400);
         }
       }));
@@ -1656,12 +1668,7 @@
         if (window.currentAudio) {
           try {
             window.currentAudio.pause();
-            window.currentAudio = null;
-          } catch(e) {}
-        }
-        if ('speechSynthesis' in window) {
-          try {
-            speechSynthesis.cancel();
+            window.currentAudio.currentTime = 0;
           } catch(e) {}
         }
         statusEl.textContent = 'オンライン';
