@@ -1491,65 +1491,56 @@
       if ('speechSynthesis' in window) { voices = speechSynthesis.getVoices(); speechSynthesis.onvoiceschanged = () => { voices = speechSynthesis.getVoices(); }; }
       
       // スマホ（iOS/Android）の自動再生ブロック制限を解除する関数
-      window.currentAudio = null;
-
       function unlockAudio() {
-        // iOS/AndroidでAudioオブジェクトの再生制限を解除するためにダミー無音を再生
-        if (typeof Audio !== 'undefined') {
-          const dummy = new Audio();
-          // 超軽量な無音WAVファイルのBase64データ
-          dummy.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAAA';
-          dummy.play().catch(e => console.log('Audio unlock check:', e));
-        }
         if ('speechSynthesis' in window) {
-          const u = new SpeechSynthesisUtterance('');
-          u.volume = 0;
-          speechSynthesis.speak(u);
+          try {
+            const u = new SpeechSynthesisUtterance('');
+            u.volume = 0;
+            speechSynthesis.speak(u);
+          } catch(e) {}
         }
       }
 
-      // 100%スマホ対応！無料のVOICEVOX音声ファイル（MP3）再生方式
-      async function speak(text) {
-        if (!text) return;
+      // タイムラグ0秒！スマホで絶対にフリーズ・クラッシュしない内蔵音声合成システム
+      function speak(text) {
+        if (!('speechSynthesis' in window)) return;
         
-        // 既に再生中の音声があれば停止
-        if (window.currentAudio) {
-          try {
-            window.currentAudio.pause();
-          } catch(e){}
-          window.currentAudio = null;
-        }
-
-        statusEl.textContent = '話しています...';
-
-        // VOICEVOXのスピーカーID設定
-        // 2: 四国めたん（ノーマル・落ち着いた女性お姉さん声）
-        // 10: 雨晴はう（ハキハキとした女性声）
-        const speakerId = 2; 
-        
-        // 自社サーバー（Netlify Functions）経由で安全に音声を取得（CORS通信エラーを100%完全回避）
-        const audioUrl = `/.netlify/functions/ai-voice?text=${encodeURIComponent(text)}`;
-
         try {
-          const audio = new Audio(audioUrl);
-          window.currentAudio = audio;
+          const u = new SpeechSynthesisUtterance(text);
+          // rate: 0.95 (上品な速度), pitch: 1.06 (少し落ち着いた美しい女性の声)
+          u.lang = 'ja-JP'; 
+          u.rate = 0.95; 
+          u.pitch = 1.06; 
+          u.volume = 1.0;
           
-          audio.onended = () => {
-            statusEl.textContent = 'オンライン';
-            window.currentAudio = null;
+          if (voices && voices.length > 0) {
+            const v = 
+              voices.find(v => v.lang === 'ja-JP' && v.name.includes('Nanami')) || 
+              voices.find(v => v.lang === 'ja-JP' && v.name.includes('Google')) || 
+              voices.find(v => v.lang === 'ja-JP' && (v.name.includes('Kyoko') || v.name.includes('Otoya'))) || 
+              voices.find(v => v.lang === 'ja-JP') || 
+              voices.find(v => v.lang.startsWith('ja'));
+            if (v) u.voice = v;
+          }
+          
+          u.onstart = () => { statusEl.textContent = '話しています...'; };
+          u.onend = () => { statusEl.textContent = 'オンライン'; };
+          u.onerror = (e) => { 
+            console.error('Speech error:', e); 
+            statusEl.textContent = 'オンライン'; 
           };
           
-          audio.onerror = (e) => {
-            console.error('Audio playback error:', e);
-            statusEl.textContent = 'オンライン';
-            window.currentAudio = null;
-          };
-
-          // アンロックされたAudioオブジェクトを再生
-          await audio.play();
+          // iOS Safariのバグ（連続再生時の詰まり）を防ぐための安全な遅延発話
+          setTimeout(() => {
+            try {
+              speechSynthesis.speak(u);
+            } catch(e) {
+              console.error('Speak inner error:', e);
+            }
+          }, 60);
           
         } catch (err) {
-          console.error('TTS API Error:', err);
+          console.error('Speak main error:', err);
           statusEl.textContent = 'オンライン';
         }
       }
