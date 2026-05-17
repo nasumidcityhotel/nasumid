@@ -1609,10 +1609,29 @@
       async function respond(q) {
         statusEl.textContent = '応答を考えています...';
         showTyping();
-        const ans = await callGemini(q);
-        removeTyping();
-        addMsg(ans, 'bot');
-        speak(ans);
+        
+        try {
+          // Gemini APIから回答を取得
+          const ans = await callGemini(q);
+          removeTyping();
+          
+          // AIのテキストの吹き出しは「何があっても絶対に」画面に表示する
+          addMsg(ans, 'bot');
+          
+          // 音声再生で万が一バグが起きても、テキストのやり取りは絶対に止めない
+          try {
+            await speak(ans);
+          } catch (voiceErr) {
+            console.error('Voice play error:', voiceErr);
+            statusEl.textContent = 'オンライン';
+          }
+          
+        } catch (geminiErr) {
+          console.error('Gemini API Error:', geminiErr);
+          removeTyping();
+          addMsg('申し訳ございません。接続が一時的に不安定です。もう一度お試しいただくか、フロントスタッフ（0287-67-1400）まで直接お問い合わせください。', 'bot');
+          statusEl.textContent = 'オンライン';
+        }
       }
 
       // モーダル開閉

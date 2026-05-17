@@ -1,5 +1,3 @@
-const https = require('https');
-
 exports.handler = async (event) => {
   const { text } = event.queryStringParameters || {};
   if (!text) {
@@ -13,40 +11,30 @@ exports.handler = async (event) => {
   const speakerId = 2; // 四国めたん (ノーマル)
   const ttsUrl = `https://api.tts.quest/v3/voicevox/synthesis?text=${encodeURIComponent(text)}&speaker=${speakerId}`;
 
-  // Node.jsのバージョンや外部ライブラリ（fetch）に一切依存しない、Node標準のhttpsモジュールで実装します
-  return new Promise((resolve) => {
-    https.get(ttsUrl, (res) => {
-      if (res.statusCode !== 200) {
-        resolve({
-          statusCode: 500,
-          headers: { 'Access-Control-Allow-Origin': '*' },
-          body: JSON.stringify({ error: `TTS Server responded with status ${res.statusCode}` })
-        });
-        return;
-      }
+  try {
+    // Netlify (Node 18+) 環境のグローバルfetchを使用し、極めてシンプルかつビルドエラーを起こさない構成にします
+    const response = await fetch(ttsUrl);
+    if (!response.ok) throw new Error(`TTS server responded with status: ${response.status}`);
 
-      const chunks = [];
-      res.on('data', (chunk) => chunks.push(chunk));
-      res.on('end', () => {
-        const buffer = Buffer.concat(chunks);
-        resolve({
-          statusCode: 200,
-          headers: {
-            'Content-Type': 'audio/mpeg',
-            'Access-Control-Allow-Origin': '*',
-            'Cache-Control': 'public, max-age=86400'
-          },
-          body: buffer.toString('base64'),
-          isBase64Encoded: true
-        });
-      });
-    }).on('error', (err) => {
-      console.error('TTS Proxy HTTP Error:', err);
-      resolve({
-        statusCode: 500,
-        headers: { 'Access-Control-Allow-Origin': '*' },
-        body: JSON.stringify({ error: err.message })
-      });
-    });
-  });
+    const arrayBuffer = await response.arrayBuffer();
+    const base64Audio = Buffer.from(arrayBuffer).toString('base64');
+
+    return {
+      statusCode: 200,
+      headers: {
+        'Content-Type': 'audio/mpeg',
+        'Access-Control-Allow-Origin': '*',
+        'Cache-Control': 'public, max-age=86400'
+      },
+      body: base64Audio,
+      isBase64Encoded: true
+    };
+  } catch (err) {
+    console.error('TTS Proxy Error:', err);
+    return {
+      statusCode: 500,
+      headers: { 'Access-Control-Allow-Origin': '*' },
+      body: JSON.stringify({ error: err.message })
+    };
+  }
 };
