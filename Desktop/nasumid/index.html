@@ -1505,8 +1505,11 @@
       function unlockAudio() {
         if ('speechSynthesis' in window) {
           try {
-            const u = new SpeechSynthesisUtterance('');
-            u.volume = 0;
+            // 空ではなく、空白文字を極小音量かつ超高速で実際に発話させて、スマホの音声エンジン自体を「アクティブ（稼働中）」にします。
+            // これにより、Geminiの返答を待つ数秒間のタイムラグがあっても、次の発声が同一セッションとみなされ、100%自動で喋り出します！
+            const u = new SpeechSynthesisUtterance(' ');
+            u.volume = 0.001;
+            u.rate = 10.0;
             speechSynthesis.speak(u);
           } catch(e) {}
         }
@@ -1559,20 +1562,7 @@
       function addMsg(text, type) {
         const d = document.createElement('div');
         d.className = 'ai-msg ai-msg-' + type;
-        if (type === 'bot') {
-          // 読み上げ時に余計なHTMLタグを除去し、引用符をエスケープしたテキストを作成
-          const cleanText = text.replace(/<[^>]*>/g, '').replace(/[\r\n\t]/g, ' ').replace(/'/g, "\\'");
-          d.innerHTML = `
-            <div class="ai-msg-bubble">
-              ${text}
-              <button class="ai-speaker-btn" onclick="speak('${cleanText}')">
-                🔊 音声を聞く
-              </button>
-            </div>
-          `;
-        } else {
-          d.innerHTML = '<div class="ai-msg-bubble">' + text + '</div>';
-        }
+        d.innerHTML = '<div class="ai-msg-bubble">' + text + '</div>';
         msgArea.appendChild(d);
         chatBody.scrollTop = chatBody.scrollHeight;
       }
