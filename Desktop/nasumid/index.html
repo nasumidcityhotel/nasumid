@@ -1527,8 +1527,8 @@
         // 10: 雨晴はう（ハキハキとした女性声）
         const speakerId = 2; 
         
-        // 登録不要で使える無料の音声合成APIのURLを作成
-        const audioUrl = `https://api.tts.quest/v3/voicevox/synthesis?text=${encodeURIComponent(text)}&speaker=${speakerId}`;
+        // 自社サーバー（Netlify Functions）経由で安全に音声を取得（CORS通信エラーを100%完全回避）
+        const audioUrl = `/.netlify/functions/ai-voice?text=${encodeURIComponent(text)}`;
 
         try {
           const audio = new Audio(audioUrl);
