@@ -1490,6 +1490,8 @@
       let voices = [];
       if ('speechSynthesis' in window) { voices = speechSynthesis.getVoices(); speechSynthesis.onvoiceschanged = () => { voices = speechSynthesis.getVoices(); }; }
       
+      window.currentAudio = null;
+
       // スマホ（iOS/Android）の自動再生ブロック制限を解除する関数
       function unlockAudio() {
         if ('speechSynthesis' in window) {
@@ -1611,7 +1613,7 @@
           
           // 音声再生で万が一バグが起きても、テキストのやり取りは絶対に止めない
           try {
-            await speak(ans);
+            speak(ans);
           } catch (voiceErr) {
             console.error('Voice play error:', voiceErr);
             statusEl.textContent = 'オンライン';
