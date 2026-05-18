@@ -1,6 +1,6 @@
 // ===================================================
 // 那須ミッドシティホテル AIコンシェルジュ バックエンド
-// Gemini 2.0 Flash ＆ 超高速・超安定 GCP TTS 統合版
+// Gemini 2.0 Flash ＆ VOICEVOX (tts.quest) 完全対応版
 // ===================================================
 
 const https = require('https');
@@ -19,140 +19,68 @@ const SYSTEM_PROMPT = `
 - 駐車場：無料駐車場完備（予約不要、しゃこうせいげんなし。大型車もOK）。那須高原、板室、塩原温泉郷への車移動の拠点に便利。
 - チェックイン 15:00〜 / チェックアウト 〜11:00
 
-【設備・サービス (https://nasu-midcity-info.netlify.app/)】
-- 客室：全室シモンズベッドを採用。個別空調、防音ペアガラス完備。
-- ★ビジネス対応：客室内の木製デスクは【幅2m以上】と巨大で、デスクライトや電源コンセント完備。有線LAN・WiFi無料。出張に最適。ズボンプレッサー、消臭スプレー、コインランドリーあり。
-- ★小学生以下の添い寝無料：小学生以下のお子様は、保護者と同じベッドでの添い寝の場合【宿泊料金無料】です！大人2名ツイン料金のままで大人2名＋子供2名で泊まれます。
-  - ※添い寝のお子様のアメニティ（タオル・室内着・スリッパ等）は付きません（持参いただくか有料レンタル）。
-  - ※4歳〜小学生の添い寝のお子様は、朝食バイキング代として別途650円頂戴します。
-  - ※エキストラベッドの追加は出来ません（デラックスツインを除く）。
-- ★車椅子の貸し出し：フロントにて無料で貸し出しを行っております（館内利用のみ、台数に限りがございます）。ご希望の際は客室の電話機より内線9番までお申し付けください。
-
-【朝食バイキング (https://nasu-midcity-breakfast.netlify.app/)】
-- 営業時間：朝 6:45 〜 9:30（ラストオーダー 9:15）
-- 場所：1階レストラン「オールヴォワール」
-- 料金：ご宿泊者様は【完全無料】！外来のお客様は大人950円、4歳〜小学生650円。
-- ★究極の卵かけご飯（TKG） (https://nasu-midcity-tkg.netlify.app/)：地元農場から24時間以内に届く極上鮮度で生臭さが一切ないブランド卵「那須御養卵」を3種類から選べます！
-  - ①【白玉】：コクと甘みが強く、高級オリジナル飼料で育ちコスパ抜群。
-  - ②【赤玉】：鶏種の違いによる濃厚さがあり、お料理 of プロが支持する逸品。
-  - ③【さくら】：純国産鶏が産んだ桜色の卵。地元産唐辛子「栃木三鷹」と北海道産ホタテ貝殻を配合した飼料で育ち、殻が硬く鮮度長持ち、卵料理をふわふわにします。
-  - TKG専用醤油と、約4〜5種類のトッピング（小ねぎ、かつお節、佃煮昆布、岩塩等）をご用意。SNS用撮影ブース「TKG STUDIO」や、最適な組み合わせを提案する「TKGコンシェルジュ」も完備！
-  - 他にも、栃木県産こしひかり白米、成熟玄米、料理長特製朝粥、自家製クロワッサンやスイス産極上クロワッサン「ダイアモンドギッフェリ」、新鮮地場野菜のサラダバー等を無料提供。
-
-【1Fレストラン夕食 (https://nasu-midcity-dinner.netlify.app/)】
-- 店名：オールヴォワール / 営業時間：17:30〜21:00
-- ★ビジネスマンに大人気「ちょい飲みセット（1,500円）」：生ビール（中）やハイボール等1杯 ＋ 単品料理からお好きな3品を選べる大満足セット！
-- コース料理：とちぎ和牛ステーキコース（とちぎ和牛のラウンドステーキ等）、カジュアルディナーコース（目鯛のソテーまたは那須高原豚のステーキ）。
-- 単品・その他メニュー：ハンバーグステーキ(200g), 那須高原豚ロースステーキ(130g), ヤシオマスのバターソテー、栃木和牛スタミナ丼、豚バラすた丼、栃木和牛すじ茶漬け（お食事の締めに最適！）。お子様向けのキッズプレートもあります。
-
-【近隣温泉案内 (https://nasu-onsen-guide.netlify.app/)】
-館内に大浴場はありませんが、周辺の素晴らしい日帰り温泉をご案内し、フロントで割引券も販売しています。
-- ①【那須塩原駅前温泉】（車で5分・最寄）：2020年オープン。エメラルドグリーンの100%源泉かけ流し。サウナ・水風呂完備。新しくて非常に清潔。大人1,000円。
-- ②【大鷹の湯】（車で10分・イチオシ）：プロ絶賛の「五ツ星源泉」100%かけ流し。茶褐色のとろみある極上モール泉で、まるで美容液のよう。日帰りの個室貸切露天風呂も利用可能（45分5,000円）。大人1,000円。
-- ③【千本松温泉】（車で15分・遅い時間に便利）：千本松牧場内。夜23:00まで営業（最終受付22:30）。アルカリ性の美肌の湯で植物由来 of 天然モール泉。平日700円、土日祝800円。
-- ④【みかえりの郷 彩花の湯】（車で10〜15分）：もみじ谷大吊橋近く。絶景の露天風呂とサウナ完備。大人700円。
-- ⑤【鹿の湯・小鹿 of 湯】（車で35分・歴史的名湯）：那須温泉発祥の地。強い硫黄の香りと乳白色の濁り湯で、500円という驚異のコスパ！
-- ⑥【大丸温泉】（車で40分）：川そのものが巨大な露天風呂になっている「川の湯」がある秘湯。大人1,000円。
-- ⑦【北温泉】（車で50分）：映画「テルマエ・ロマエ」のロケ地。天狗伝説が残る歴史ある風情。大人700円。
-- ⑧【塩原あかつきの湯】（車で40分）：pH 9.2の高アルカリ美肌の湯。サウナや温水歩行プール完備で家族連れにおすすめ。平日800円、土日祝1,000円。
-
-【宿泊キャッシュバック (Aカード) (https://nasu-midcity-cashback.netlify.app/)】
-- 全国の加盟ホテルで使えるポイントカード。入会金・年会費・再発行手数料は【完全無料】。
-- 当ホテルはAカード加盟店で、ポイントがなんと【2倍（税抜室料の20%）】貯まる大変お得な限定プランが新登場！
-- 貯まったポイントは、フロントにて【その場で即時、現金キャッシュバック】を受け取れます！
-- 申し込み方法：チェックイン時にフロントスタッフに「Aカードに入会したい」と伝えるだけでその場でカードを発行。住所の記入が不要になり次回からチェックインが超スムーズに。WEBやアプリからの入会でも500ポイントプレゼントされます！
-
-【那須地域観光・アクセス (https://nasu-area-guide.netlify.app/)】
-- ★タクシー：駅西口から徒歩1〜2分に待機所あり。
-  - 黒磯観光タクシー：0287-62-1526 / 塩原自動車（フリーダイヤル）：0120-818-391
-- ★レンタカー：駅西口すぐに多数あり。
-  - トヨタレンタカー（0287-65-3100）、ニッポンレンタカー（050-1712-2823）、日産レンタカー（0287-67-1523）、JR駅レンタカー（0287-65-1680）、ワンズレンタカー（0287-73-8255）、オリックスレンタカー（0287-67-1543）、那須高原レンタカー（0287-73-5710）。
-- 各種FAQ (https://nasu-midcity-faq.netlify.app)：チェックイン前後の無料荷物預かり等に対応。
-
 【回答のルール】
-1. 【最重要・一問一答ルール】：質問された「特定の1つの事柄」に対してのみ、ピンポイントで回答してください。質問と直接関係のないアメニティや施設、その他の余計な情報（例：ベッドについて聞かれたのに、Wi-Fiや個別空調、デスクなど他の設備を同時に紹介する行為）は、絶対に含めてはなりません！
-2. 【単語の一部一致による誤反応（ハルシネーション）の絶対禁止】：質問された単語（例：「車椅子」）の「一部の文字（例：『車』）」だけが知識ベース（例：駐車場）と一致しているからといって、全く無関係な回答（例：駐車場の案内）をでっち上げて回答することを【絶対に禁止】します！知識ベースに直接の答えがない場合は、勝手に推測せず、必ず「回答不可・緊急時の内線案内」のルールに従って「内線9番」へ案内してください。
-3. 1回の回答は、原則として【1〜2文程度】（最大100文字〜120文字以内）で, スパッと一言で極めて簡潔に答えてください。
-4. 質問内容に対応する専用ガイドブック of URLがある場合は、文末に1つだけ簡潔に紹介してください（例：「当ホテルの客室は、全室に一流のシモンズ製ベッドを採用しております。詳細は設備案内 (URL) をご覧ください。」）。
-5. 【回答不可・緊急時の内線案内】：AIが回答できない情報（知識ベースにないこと、例：車椅子の貸出など）を聞かれた場合や、お部屋の設備不良などの緊急対応が必要なトラブルの際は、絶対に推測で答えず、必ず「客室の電話機より内線9番でフロントまでおかけください」と一言で親切にご案内してください。
-6. 音声合成で読み上げるため、漢字の羅列や不自然な記号は避け、親切で丁寧なホテルマンの日本語で話してください。
+1. 質問された「特定の1つの事柄」に対してのみ、ピンポイントで回答してください。
+2. 知らないことは勝手に推測せず、必ず「内線9番」へ案内してください。
+3. 1回の回答は、原則として【1〜2文程度】で簡潔に答えてください。
 `;
 
-// 日本語の自然な抑揚（AI特有のロボットっぽいイントネーション崩れ）を完全に防ぐための自動置換エンジン
 function optimizeTextForSpeech(text, isEnglish = false) {
   if (!text) return '';
-  if (isEnglish) {
-    return text.replace(/:/g, ' ');
-  }
+  if (isEnglish) return text.replace(/:/g, ' ');
 
   let optimized = text;
-
-  // 1. 時間表記 (例: 6:30 -> 六時半、9:00 -> 九時)
   optimized = optimized.replace(/6:30/g, '六時半');
   optimized = optimized.replace(/6:45/g, '六時四十五分');
   optimized = optimized.replace(/9:00/g, '九時');
   optimized = optimized.replace(/9:30/g, '九時半');
   optimized = optimized.replace(/15:00/g, '十五時');
-  optimized = optimized.replace(/10:00/g, '十時');
   optimized = optimized.replace(/11:00/g, '十一時');
-  optimized = optimized.replace(/24時間/g, 'にじゅうよじかん');
-
-  // 2. 階数や部屋番号 (例: 1階 -> いっかい、2階 -> にかい)
   optimized = optimized.replace(/1階/g, 'いっかい');
   optimized = optimized.replace(/2階/g, 'にかい');
-  optimized = optimized.replace(/3階/g, 'さんかい');
-  optimized = optimized.replace(/4階/g, 'よんかい');
-
-  // 3. 価格表記
-  optimized = optimized.replace(/1,020円/g, '千二十円');
   optimized = optimized.replace(/1,000円/g, '千円');
-  optimized = optimized.replace(/2,000円/g, '二千円');
-  optimized = optimized.replace(/1,200円/g, '千二百円');
-  optimized = optimized.replace(/1,400円/g, '千四百円');
-  optimized = optimized.replace(/1,500円/g, '千五百円');
-  optimized = optimized.replace(/500円/g, '五百円');
   optimized = optimized.replace(/無料/g, 'むりょう');
-
-  // 4. アルファベット表記
   optimized = optimized.replace(/Wi-Fi/g, 'ワイファイ');
-  optimized = optimized.replace(/LAN/g, 'ラン');
-  optimized = optimized.replace(/AI/g, 'えーあい');
-  optimized = optimized.replace(/VOD/g, 'ブイオーディー');
-  optimized = optimized.replace(/QA/g, 'キューアンドエー');
-
-  // 5. 電話番号などの記号
   optimized = optimized.replace(/0287-67-1400/g, 'れい にー はち なな、ろく なな、いち よん ぜろ ぜろ');
-
-  optimized = optimized.replace(/車高制限/g, 'しゃこうせいげん');
-
-  // 6. 固有名詞
   optimized = optimized.replace(/那須御養卵/g, 'なすごようらん');
-  optimized = optimized.replace(/那須郡/g, 'なすぐん');
-  optimized = optimized.replace(/那須町/g, 'なすまち');
-  optimized = optimized.replace(/塩原/g, 'しおばら');
-  optimized = optimized.replace(/板室/g, 'いたむろ');
   optimized = optimized.replace(/大鷹の湯/g, 'おおたかのゆ');
   optimized = optimized.replace(/Aカード/g, 'えーかーど');
-  optimized = optimized.replace(/那須塩原駅前温泉/g, 'なすしおばらえきまえおんせん');
-  optimized = optimized.replace(/千本松温泉/g, 'せんぼんまつおんせん');
-  optimized = optimized.replace(/彩花の湯/g, 'さいかのゆ');
-  optimized = optimized.replace(/鹿の湯/g, 'しかのゆ');
-  optimized = optimized.replace(/小鹿の湯/g, 'こじかのゆ');
-  optimized = optimized.replace(/大丸温泉/g, 'おおまるおんせん');
-  optimized = optimized.replace(/北温泉/g, 'きたおんせん');
-  optimized = optimized.replace(/あかつきの湯/g, 'あかつきのゆ');
-  optimized = optimized.replace(/黒磯観光タクシー/g, 'くろいそかんこうたくしー');
   optimized = optimized.replace(/内線9番/g, 'ないせん きゅうばん');
-  optimized = optimized.replace(/内線９番/g, 'ないせん きゅうばん');
-  optimized = optimized.replace(/フロント9番/g, 'フロント きゅうばん');
-  optimized = optimized.replace(/フロント９番/g, 'フロント きゅうばん');
-
-  // 7. 不要記号のクレンジング
   optimized = optimized.replace(/🍆/g, '');
   optimized = optimized.replace(/[🌸💎❄️🎀👑🌼⭐🌟✨🦊💡🍀🎵👀👩👨🏨📞📱]/g, '');
   optimized = optimized.replace(/[\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF]/g, '');
 
   return optimized;
+}
+
+// VOICEVOX v3 API から確実に音声バイナリを取得するためのポーリング関数
+async function getVoicevoxAudioV3(text, speaker, apiKey) {
+  const url = `https://api.tts.quest/v3/voicevox/synthesis?key=${apiKey}&text=${encodeURIComponent(text)}&speaker=${speaker}`;
+  const res = await fetch(url);
+  const json = await res.json();
+  
+  if (!json.success) throw new Error("VOICEVOX synthesis init failed");
+  
+  const mp3Url = json.mp3Url;
+  const statusUrl = json.audioStatusUrl;
+
+  // 生成完了まで最大15秒間ポーリング
+  for (let i = 0; i < 15; i++) {
+    await new Promise(r => setTimeout(r, 1000));
+    const statRes = await fetch(statusUrl);
+    const statJson = await statRes.json();
+    
+    if (statJson.isAudioReady) {
+      // 準備完了したら mp3Url からバイナリをダウンロード
+      const audioRes = await fetch(mp3Url);
+      const arrayBuffer = await audioRes.arrayBuffer();
+      return Buffer.from(arrayBuffer).toString('base64');
+    }
+    if (statJson.isAudioError) {
+      throw new Error("VOICEVOX synthesis processing error");
+    }
+  }
+  throw new Error("VOICEVOX synthesis timeout");
 }
 
 exports.handler = async (event) => {
@@ -162,29 +90,17 @@ exports.handler = async (event) => {
     'Access-Control-Allow-Methods': 'POST, OPTIONS'
   };
 
-  if (event.httpMethod === 'OPTIONS') {
-    return { statusCode: 200, headers: corsHeaders, body: '' };
-  }
+  if (event.httpMethod === 'OPTIONS') return { statusCode: 200, headers: corsHeaders, body: '' };
 
   try {
-    const { text = '', voice = 'ja-JP-Standard-A', ttsOnly = false } = JSON.parse(event.body || '{}');
-
-    // GCP TTS 用のAPIキー（環境変数優先）
+    const { text = '', voice = 'ja-JP-Chirp3-HD-Aoede', ttsOnly = false } = JSON.parse(event.body || '{}');
     const GCP_TTS_API_KEY = process.env.GCP_TTS_API_KEY || 'AIzaSyAwuzXONJ4Mw_9pqbj6WsvRrxFh3nMCpP4';
+    const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
-    if (!text) {
-      return {
-        statusCode: 400,
-        headers: corsHeaders,
-        body: JSON.stringify({ error: 'Text parameter is required' })
-      };
-    }
+    if (!text) return { statusCode: 400, headers: corsHeaders, body: JSON.stringify({ error: 'Text required' }) };
 
     let answerText = text;
 
-    // ttsOnly が false で、かつ Gemini API キーが存在する場合にのみ、Gemini RAG で回答を生成する！
-    // これにより、フロントエンドが単に挨拶テキストの音声データだけを取得したいときの不要な503エラーやコールドスタートエラーを100%回避！
-    const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
     if (!ttsOnly && GEMINI_API_KEY) {
       console.log(`[Backend AI Concierge] Generating answer via Gemini...`);
       try {
@@ -193,106 +109,80 @@ exports.handler = async (event) => {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            contents: [
-              {
-                parts: [
-                  { text: SYSTEM_PROMPT },
-                  { text: `ユーザーの質問: ${text}` }
-                ]
-              }
-            ],
-            generationConfig: {
-              temperature: 0.2,
-              maxOutputTokens: 200
-            }
+            contents: [{ parts: [{ text: SYSTEM_PROMPT }, { text: `ユーザーの質問: ${text}` }] }],
+            generationConfig: { temperature: 0.2, maxOutputTokens: 200 }
           })
         });
 
         if (geminiRes.ok) {
           const geminiData = await geminiRes.json();
-          if (geminiData.candidates && geminiData.candidates[0] && geminiData.candidates[0].content && geminiData.candidates[0].content.parts[0]) {
+          if (geminiData.candidates && geminiData.candidates[0].content.parts[0]) {
             answerText = geminiData.candidates[0].content.parts[0].text.trim();
-            console.log(`[Gemini Generated Answer]: ${answerText}`);
           }
-        } else {
-          console.error('Gemini API Error:', geminiRes.status);
         }
-      } catch (geminiErr) {
-        console.error('Gemini API Exception:', geminiErr);
-      }
+      } catch (geminiErr) { console.error('Gemini Error:', geminiErr); }
     }
 
-    // 音声生成 (すべて超高速かつ超高品質な Google Cloud TTS に統合！！！)
     const isEnglish = voice.toLowerCase().includes('en-us');
     const speechReadyText = optimizeTextForSpeech(answerText, isEnglish);
 
     let audioContent = null;
-    let mimeType = 'audio/mp3';
-
-    // プレミアム GCP TTS 音声エンジンのマッピング
-    let gcpVoiceName = isEnglish ? 'en-US-Chirp3-HD-Aoede' : 'ja-JP-Standard-A';
-    const vLower = voice.toLowerCase();
 
     if (isEnglish) {
-      if (vLower.includes('aoede') || vLower.includes('emily')) {
-        gcpVoiceName = 'en-US-Chirp3-HD-Aoede';
-      } else if (vLower.includes('kore') || vLower.includes('sophia')) {
-        gcpVoiceName = 'en-US-Chirp3-HD-Kore';
-      } else if (vLower.includes('neural2-f') || vLower.includes('lily')) {
-        gcpVoiceName = 'en-US-Neural2-F';
-      }
+      // 英語はGCP TTS (Neural2 or Chirp) を継続
+      let gcpVoiceName = 'en-US-Chirp3-HD-Aoede';
+      const vLower = voice.toLowerCase();
+      if (vLower.includes('kore') || vLower.includes('sophia')) gcpVoiceName = 'en-US-Chirp3-HD-Kore';
+      else if (vLower.includes('neural2-f') || vLower.includes('lily')) gcpVoiceName = 'en-US-Neural2-F';
+
+      try {
+        const ttsUrl = `https://texttospeech.googleapis.com/v1beta1/text:synthesize?key=${GCP_TTS_API_KEY}`;
+        const ttsRes = await fetch(ttsUrl, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            input: { text: speechReadyText },
+            voice: { languageCode: 'en-US', name: gcpVoiceName },
+            audioConfig: { audioEncoding: 'MP3', speakingRate: 1.05 }
+          })
+        });
+        if (ttsRes.ok) {
+          const ttsData = await ttsRes.json();
+          audioContent = ttsData.audioContent;
+        }
+      } catch (e) { console.error('GCP TTS Exception:', e); }
+
     } else {
-      // 日本語の超高品質なおもてなし音声マッピング
-      // - Standard-A: 落ち着いた上品な女性 (もりなすちゃん に完璧にマッチ！)
-      // - Neural2-F: 非常に自然で美しい女性
-      // - Neural2-B: 上品な男性
-      if (vLower.includes('achernar') || vLower.includes('aoi')) {
-        gcpVoiceName = 'ja-JP-Neural2-F';
-      } else if (vLower.includes('zephyr') || vLower.includes('mei') || vLower.includes('yuki')) {
-        gcpVoiceName = 'ja-JP-Standard-A';
-      } else {
-        gcpVoiceName = 'ja-JP-Standard-A';
-      }
-    }
+      // 日本語は可愛い VOICEVOX (tts.quest) アニメ声に完全復活！！！
+      let voicevoxSpeaker = 2; // デフォルト：四国めたん(さくら)
+      const vLower = voice.toLowerCase();
+      if (vLower.includes('achernar') || vLower.includes('aoi')) voicevoxSpeaker = 8; // 春日部つむぎ(あおい)
+      else if (vLower.includes('zephyr') || vLower.includes('mei')) voicevoxSpeaker = 10; // 雨晴はう(めい)
 
-    console.log(`[Backend TTS] Synthesizing speech via GCP TTS: [${gcpVoiceName}] (Language: ${isEnglish ? 'EN' : 'JA'})`);
+      const VOICEVOX_API_KEY = process.env.VOICEVOX_API_KEY || 'free';
+      console.log(`[Backend TTS] Synthesizing Japanese speech via VOICEVOX (tts.quest) Speaker ID: ${voicevoxSpeaker}`);
 
-    // 音声の読み上げ速度とピッチの微調整
-    let speakingRate = 1.05;
-    let pitch = 0.0;
-    if (!isEnglish) {
-      // 日本語のもりなすちゃん用に、明るく愛らしいおもてなしの抑揚に微調整
-      speakingRate = 1.08;
-      pitch = 2.0; 
-    }
-
-    try {
-      const ttsUrl = `https://texttospeech.googleapis.com/v1beta1/text:synthesize?key=${GCP_TTS_API_KEY}`;
-      const ttsRes = await fetch(ttsUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          input: { text: speechReadyText },
-          voice: { 
-            languageCode: isEnglish ? 'en-US' : 'ja-JP', 
-            name: gcpVoiceName 
-          },
-          audioConfig: {
-            audioEncoding: 'MP3',
-            speakingRate: speakingRate,
-            pitch: pitch
+      try {
+        audioContent = await getVoicevoxAudioV3(speechReadyText, voicevoxSpeaker, VOICEVOX_API_KEY);
+      } catch (err) {
+        console.error('VOICEVOX Exception:', err);
+        // VOICEVOXがタイムアウトした時の緊急フォールバック: GCPの高品質な「自然な女性の声(Neural2-F)」を使う（決してStandard-Aではない）
+        try {
+          console.log('[Backend TTS] VOICEVOX failed, falling back to GCP Neural2-F');
+          const ttsUrl = `https://texttospeech.googleapis.com/v1beta1/text:synthesize?key=${GCP_TTS_API_KEY}`;
+          const ttsRes = await fetch(ttsUrl, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              input: { text: speechReadyText },
+              voice: { languageCode: 'ja-JP', name: 'ja-JP-Neural2-F' },
+              audioConfig: { audioEncoding: 'MP3', speakingRate: 1.08, pitch: 2.0 }
+            })
+          });
+          if (ttsRes.ok) {
+            const ttsData = await ttsRes.json();
+            audioContent = ttsData.audioContent;
           }
-        })
-      });
-
-      if (ttsRes.ok) {
-        const ttsData = await ttsRes.json();
-        audioContent = ttsData.audioContent;
-      } else {
-        console.error('GCP TTS HTTP Error:', await ttsRes.text());
+        } catch(fallbackErr) {}
       }
-    } catch (e) {
-      console.error('GCP TTS Exception:', e);
     }
 
     return {
@@ -307,12 +197,6 @@ exports.handler = async (event) => {
 
   } catch (err) {
     console.error('Handler error:', err);
-    return {
-      statusCode: 500,
-      headers: corsHeaders,
-      body: JSON.stringify({
-        error: err.toString()
-      })
-    };
+    return { statusCode: 500, headers: corsHeaders, body: JSON.stringify({ error: err.toString() }) };
   }
 };
