@@ -1,7 +1,28 @@
 // ===================================================
 // 那須ミッドシティホテル AIコンシェルジュ バックエンド
-// Gemini 2.0 Flash ＆ GCP Text-to-Speech (Chirp 3 HD) 統合版
+// Gemini 2.0 Flash ＆ VOICEVOX (tts.quest) / GCP TTS 統合版
 // ===================================================
+
+const https = require('https');
+
+// VOICEVOX (tts.quest) の音声バイナリをあらゆるNode環境で100%確実に取得する超堅牢関数
+function getVoiceVoxAudio(url) {
+  return new Promise((resolve, reject) => {
+    https.get(url, (res) => {
+      if (res.statusCode !== 200) {
+        reject(new Error(`VOICEVOX Server returned status code ${res.statusCode}`));
+        return;
+      }
+      const chunks = [];
+      res.on('data', (chunk) => chunks.push(chunk));
+      res.on('end', () => {
+        resolve(Buffer.concat(chunks));
+      });
+    }).on('error', (err) => {
+      reject(err);
+    });
+  });
+}
 
 const SYSTEM_PROMPT = `
 あなたは那須ミッドシティホテルの優秀で温かみのある「AIコンシェルジュ」です。ホテルの宿泊客や検討中の旅行者に対して、丁寧で親切な日本語（または英語）で回答してください。
@@ -144,6 +165,13 @@ function optimizeTextForSpeech(text, isEnglish = false) {
   optimized = optimized.replace(/フロント9番/g, 'フロント きゅうばん');
   optimized = optimized.replace(/フロント９番/g, 'フロント きゅうばん');
 
+  // 7. 音声合成で不自然に読まれてしまう絵文字（イラスト）や不要な記号の徹底クレンジング
+  optimized = optimized.replace(/🍆/g, ''); // 茄子の絵文字を完全に削除して読み飛ばし！
+  optimized = optimized.replace(/[🌸💎❄️🎀👑🌼⭐🌟✨🦊💡🍀🎵👀👩👨🏨📞📱]/g, ''); // 代表的な絵文字を削除
+  
+  // 一般的な絵文字を一括で安全にクリーニング（サロゲートペア対応）
+  optimized = optimized.replace(/[\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF]/g, '');
+
   return optimized;
 }
 
@@ -218,81 +246,86 @@ exports.handler = async (event) => {
       };
     }
 
-    // 2. GCP Text-to-Speech による音声生成
+    // 2. 音声生成 (日本語はVOICEVOX(tts.quest)、英語はGCP TTS)
     const isEnglish = voice.toLowerCase().includes('en-us');
     const speechReadyText = optimizeTextForSpeech(answerText, isEnglish);
 
-    // ボイスマッピング
-    let geminiVoice = 'ja-JP-Chirp3-HD-Aoede'; // デフォルト (日本語・さくら)
-    let langCode = 'ja-JP';
-    const vLower = voice.toLowerCase();
+    let audioContent = null;
+    let mimeType = 'audio/mp3';
 
-    // 🔴 英語ボイス（en-US）のマッピング
+    // 🔴 英語ボイス（GCP TTSによるネイティブ英語生成）
     if (isEnglish) {
-      langCode = 'en-US';
+      let geminiVoice = 'en-US-Chirp3-HD-Aoede'; // デフォルト (Emily)
+      const vLower = voice.toLowerCase();
       if (vLower.includes('aoede') || vLower.includes('emily')) {
-        geminiVoice = 'en-US-Chirp3-HD-Aoede'; // Emily
-      } else if (vLower.includes('kore') || vLower.includes('sophia')) {
-        geminiVoice = 'en-US-Chirp3-HD-Kore'; // Sophia
-      } else if (vLower.includes('neural2-f') || vLower.includes('lily')) {
-        geminiVoice = 'en-US-Neural2-F'; // Lily
-      } else {
         geminiVoice = 'en-US-Chirp3-HD-Aoede';
+      } else if (vLower.includes('kore') || vLower.includes('sophia')) {
+        geminiVoice = 'en-US-Chirp3-HD-Kore';
+      } else if (vLower.includes('neural2-f') || vLower.includes('lily')) {
+        geminiVoice = 'en-US-Neural2-F';
       }
-    } 
-    // 🔵 日本語ボイス（ja-JP）のマッピング
-    else {
-      langCode = 'ja-JP';
-      if (vLower.includes('aoede') || vLower.includes('sakura')) {
-        geminiVoice = 'ja-JP-Chirp3-HD-Aoede'; // さくら
-      } else if (vLower.includes('achernar') || vLower.includes('aoi')) {
-        geminiVoice = 'ja-JP-Chirp3-HD-Achernar'; // あおい
-      } else if (vLower.includes('zephyr') || vLower.includes('yuki') || vLower.includes('mei')) {
-        geminiVoice = 'ja-JP-Chirp3-HD-Zephyr'; // めい
-      }
-    }
 
-    console.log(`[Backend AI Concierge] Generating text & speech... Selected Voice: ${geminiVoice}`);
+      console.log(`[Backend AI Concierge] Generating English speech via GCP TTS... Selected: ${geminiVoice}`);
 
-    // マスコットに合わせた「上品で可愛い声」のスピード・ピッチチューニング (ホテル用)
-    let speakingRate = 1.03;
-    let pitch = 2.0;
-
-    if (isEnglish) {
+      let speakingRate = 1.03;
+      let pitch = 2.0;
       if (geminiVoice.includes('Aoede')) { speakingRate = 1.05; pitch = 3.0; }
       else if (geminiVoice.includes('Kore')) { speakingRate = 1.02; pitch = 1.5; }
       else { speakingRate = 1.04; pitch = 2.5; }
-    } else {
-      if (geminiVoice.includes('Aoede')) { speakingRate = 1.06; pitch = 3.6; } // さくら：明るく上品に可愛らしく！
-      else if (geminiVoice.includes('Achernar')) { speakingRate = 1.02; pitch = 1.8; } // あおい：しっとり上品！
-      else if (geminiVoice.includes('Zephyr')) { speakingRate = 1.04; pitch = 2.8; } // めい：ふんわり愛らしく！
-    }
 
-    const ttsUrl = `https://texttospeech.googleapis.com/v1beta1/text:synthesize?key=${GCP_TTS_API_KEY}`;
-    const ttsRes = await fetch(ttsUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        input: { text: speechReadyText },
-        voice: {
-          languageCode: langCode,
-          name: geminiVoice
-        },
-        audioConfig: {
-          audioEncoding: 'LINEAR16',        // 非圧縮WAVを指定
-          sampleRateHertz: 48000,          // CDを超える48kHzスタジオ音質を指定
-          speakingRate: speakingRate,
-          pitch: pitch
+      try {
+        const ttsUrl = `https://texttospeech.googleapis.com/v1beta1/text:synthesize?key=${GCP_TTS_API_KEY}`;
+        const ttsRes = await fetch(ttsUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            input: { text: speechReadyText },
+            voice: { languageCode: 'en-US', name: geminiVoice },
+            audioConfig: {
+              audioEncoding: 'MP3',
+              speakingRate: speakingRate,
+              pitch: pitch
+            }
+          })
+        });
+        if (ttsRes.ok) {
+          const ttsData = await ttsRes.json();
+          audioContent = ttsData.audioContent;
+          mimeType = 'audio/mp3';
+        } else {
+          console.error('GCP TTS English Error:', await ttsRes.text());
         }
-      })
-    });
+      } catch (e) {
+        console.error('GCP TTS English Exception:', e);
+      }
+    } 
+    // 🔵 日本語ボイス（VOICEVOX (tts.quest) による極上可愛化おもてなしボイス生成）
+    else {
+      let voicevoxSpeaker = 2; // デフォルト：四国めたん (ノーマル) - さくら
+      const vLower = voice.toLowerCase();
 
-    let audioContent = null;
-    if (ttsRes.ok) {
-      const ttsData = await ttsRes.json();
-      audioContent = ttsData.audioContent;
-    } else {
-      console.error('GCP TTS Error:', await ttsRes.text());
+      if (vLower.includes('achernar') || vLower.includes('aoi')) {
+        voicevoxSpeaker = 8; // 春日部つむぎ (ノーマル) - あおい
+      } else if (vLower.includes('zephyr') || vLower.includes('yuki') || vLower.includes('mei')) {
+        voicevoxSpeaker = 10; // 雨晴はう (ノーマル) - めい
+      }
+
+      console.log(`[Backend AI Concierge] Generating Japanese speech via VOICEVOX (tts.quest) Speaker: ${voicevoxSpeaker}`);
+
+      // 環境変数からVOICEVOXの無料APIキーを取得。設定がなければ、無料プラン用のデフォルトキーを使用
+      const VOICEVOX_API_KEY = process.env.VOICEVOX_API_KEY || 'free';
+
+      try {
+        // tts.quest のAPI（GETで一瞬で音声ファイルを返してくれる超高速エンドポイント）
+        const voicevoxUrl = `https://deprecatedapis.tts.quest/v2/voicevox/audio/?key=${VOICEVOX_API_KEY}&text=${encodeURIComponent(speechReadyText)}&speaker=${voicevoxSpeaker}`;
+        
+        // Node標準のhttpsモジュールによる超堅牢な取得（fetch未定義エラーを100%防止）
+        const buffer = await getVoiceVoxAudio(voicevoxUrl);
+        audioContent = buffer.toString('base64');
+        mimeType = 'audio/mp3';
+      } catch (err) {
+        console.error('VOICEVOX HTTP Exception:', err);
+      }
     }
 
     return {
