@@ -1634,17 +1634,24 @@
 
       function speak(text, gender) {
         return new Promise((resolve) => {
+          // 日本語の場合はロボット音声を絶対に鳴らさない（即座にスキップ）！！！
+          if (currentLang === 'ja') {
+            console.warn('[TTS System] Blocked local browser AI voice to prevent robotic sound fallback.');
+            resolve();
+            return;
+          }
+          
+          // 英語の場合のみ、緊急フォールバックとしてブラウザのローカル英語音声を鳴らす
           if (!window.speechSynthesis || isMuted) { resolve(); return; }
           window.speechSynthesis.cancel();
           const u = new SpeechSynthesisUtterance(text);
-          u.lang = (currentLang === 'ja') ? 'ja-JP' : 'en-US';
+          u.lang = 'en-US';
           u.rate = 0.95;
-          u.pitch = gender === 'male' ? 0.95 : 1.05;
+          u.pitch = 1.05;
           u.volume = 1.0;
           const voice = getBestVoice(gender);
           if (voice) u.voice = voice;
           
-          // アバターの口パク（リップシンク）を開始！
           const avatar = document.getElementById('aiLiveAvatar');
           if (avatar) avatar.classList.add('is-speaking');
           
@@ -1658,7 +1665,7 @@
             if (avatar) avatar.classList.remove('is-speaking');
             resolve(); 
           };
-          statusEl.textContent = currentLang === 'en' ? 'Speaking...' : '話しています...';
+          statusEl.textContent = 'Speaking...';
           window.speechSynthesis.speak(u);
         });
       }
@@ -1869,12 +1876,20 @@
           firstOpen=false; 
           applyLanguage(); 
           const greeting = UI_TEXT[currentLang].greeting;
-          lastBotAnswer = greeting;
+          // 画面には丁寧で親切な挨拶をそのままフル表示！
           addMsg(greeting, 'bot');
+          
+          // 音声は一瞬で生成が完了する「短い第一声」に絞り込み、爆速で喋りだす超高速化対応！
+          const shortGreeting = (currentLang === 'ja') 
+            ? 'こんにちは！キャラクターのもりなすちゃんです。ご質問くださいね。' 
+            : "Hello! I'm Mori-Nasu-chan. Please feel free to ask.";
+          
+          lastBotAnswer = shortGreeting;
+          
           setTimeout(() => {
             speakLastAnswerDynamic();
-          }, 300);
-          setTimeout(addChips, 600); 
+          }, 150); // 起動ディレイも150msに短縮し、一瞬で第一声が出るように！
+          setTimeout(addChips, 450); 
         } 
       }));
       
