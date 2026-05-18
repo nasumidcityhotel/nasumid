@@ -1044,23 +1044,23 @@
     }
 
     /* ============================================
-    AI LIVE AVATAR (Nasu Mascot "Nasu-Mid-chan" 🍆)
+    AI LIVE AVATAR (Nasu Mascot "Mori-Nasu-chan" 🍆)
     ============================================ */
     .ai-live-avatar {
       position: relative;
-      width: 52px;
-      height: 52px;
+      width: 92px;  /* もりなすちゃんがハッキリ見えるよう92pxに大幅サイズアップ！ */
+      height: 92px; /* もりなすちゃんがハッキリ見えるよう92pxに大幅サイズアップ！ */
       background: #ffffff;
       border-radius: 50%;
-      box-shadow: 0 4px 14px rgba(155, 89, 182, 0.35); /* 高貴な紫ナスシャドウ */
+      box-shadow: 0 8px 24px rgba(155, 89, 182, 0.45); /* もりなすちゃんを引き立てるリッチな紫シャドウ */
       display: flex;
       justify-content: center;
       align-items: center;
       flex-shrink: 0;
       overflow: hidden;
       animation: avatarFloat 2.5s ease-in-out infinite alternate;
-      border: 2px solid rgba(155, 89, 182, 0.45);
-      margin-right: 12px;
+      border: 3px solid rgba(155, 89, 182, 0.7); /* 高級感あふれる紫のゴールド縁 */
+      margin-right: 16px;
       transition: all 0.3s ease;
     }
     
@@ -1388,12 +1388,12 @@
     <div class="ai-modal-content ai-chat-mode">
       <button class="ai-modal-close" id="aiModalClose">×</button>
       <div class="ai-chat-header">
-        <!-- 動く可愛いナス型AIキャラクターアバター（なすみっどちゃん 🍆） -->
+        <!-- 動く可愛いナス型AIキャラクターアバター（もりなすちゃん 🍆） -->
         <div class="ai-live-avatar" id="aiLiveAvatar">
-          <img src="nasu_avatar.png" alt="なすみっどちゃん" onerror="this.src='sheader_logo.png'">
+          <img src="nasu_avatar.png" alt="もりなすちゃん" onerror="this.src='sheader_logo.png'">
         </div>
         <div style="flex: 1;">
-          <div class="ai-chat-name" id="aiChatName">那須ミッドシティ AIコンシェルジュ</div>
+          <div class="ai-chat-name" id="aiChatName">もりなすちゃん (AIコンシェルジュ)</div>
           <div class="ai-chat-status" id="aiChatStatus">オンライン</div>
         </div>
         <!-- 🔊 消音 ＆ 🌐 言語切替ボタンの統合ヘッダーコントロール -->
@@ -1543,8 +1543,8 @@
       }
 
       const UI_TEXT = {
-        ja: { name: 'なすみっどちゃん (AIコンシェルジュ)', status: 'オンライン', placeholder: 'テキストで質問する...', send: '送信', genderLabel: '性別', voiceLabel: '声質', femaleBtn: '👩 女性', maleBtn: '👨 男性', chips: ['朝食は何時から？', 'おすすめの温泉は？', 'チェックインの時間', '駐車場はある？', '駅からの行き方', '部屋の設備は？'], greeting: 'こんにちは！那須ミッドシティホテル公式マスコットの「なすみっどちゃん」です🍆 朝食・温泉・アクセスなど、何でもお気軽にお尋ねくださいね。', def: 'ご質問ありがとうございます。その件につきましては、フロントのスタッフが喜んで詳しくご案内いたします。お電話は、0287-67-1400 まで、いつでもお気軽にお問い合わせください。' },
-        en: { name: 'Nasu-Mid-chan (AI Concierge)', status: 'Online', placeholder: 'Ask a question in English...', send: 'Send', genderLabel: 'Gender', voiceLabel: 'Voice', femaleBtn: '👩 Female', maleBtn: '👨 Male', chips: ['Breakfast time?', 'Recommend Onsen?', 'Check-in time?', 'Is parking free?', 'How to go from station?', 'Room amenities?'], greeting: 'Hello! I\'m "Nasu-Mid-chan", the official mascot of Nasu Midcity Hotel🍆 Please feel free to ask about breakfast, hot springs, access, or anything else.', def: 'Thank you for your question. Our front desk staff will be happy to assist you in detail. Please feel free to call us at +81-287-67-1400 anytime.' }
+        ja: { name: 'もりなすちゃん (AIコンシェルジュ)', status: 'オンライン', placeholder: 'テキストで質問する...', send: '送信', genderLabel: '性別', voiceLabel: '声質', femaleBtn: '👩 女性', maleBtn: '👨 男性', chips: ['朝食は何時から？', 'おすすめの温泉は？', 'チェックインの時間', '駐車場はある？', '駅からの行き方', '部屋の設備は？'], greeting: 'こんにちは！那須ミッドシティホテル公式マスコットの「もりなすちゃん」です🍆 朝食・温泉・アクセスなど、何でもお気軽にお尋ねくださいね。', def: 'ご質問ありがとうございます。その件につきましては、フロントのスタッフが喜んで詳しくご案内いたします。お電話は、0287-67-1400 まで、いつでもお気軽にお問い合わせください。' },
+        en: { name: 'Mori-Nasu-chan (AI Concierge)', status: 'Online', placeholder: 'Ask a question in English...', send: 'Send', genderLabel: 'Gender', voiceLabel: 'Voice', femaleBtn: '👩 Female', maleBtn: '👨 Male', chips: ['Breakfast time?', 'Recommend Onsen?', 'Check-in time?', 'Is parking free?', 'How to go from station?', 'Room amenities?'], greeting: 'Hello! I\'m "Mori-Nasu-chan", the official mascot of Nasu Midcity Hotel🍆 Please feel free to ask about breakfast, hot springs, access, or anything else.', def: 'Thank you for your question. Our front desk staff will be happy to assist you in detail. Please feel free to call us at +81-287-67-1400 anytime.' }
       };
 
       const VOICES_DICT = {
