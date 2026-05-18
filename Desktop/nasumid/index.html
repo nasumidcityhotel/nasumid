@@ -1619,11 +1619,30 @@
         const select = document.getElementById('voiceSelect');
         if (!select) return;
         select.innerHTML = '';
-        VOICES_DICT[currentLang][currentGender].forEach(v => {
+        
+        // 言語コードと性別の安全な正規化フォールバック
+        if (currentLang !== 'ja' && currentLang !== 'en') {
+          currentLang = 'ja';
+        }
+        if (currentGender !== 'female' && currentGender !== 'male') {
+          currentGender = 'female';
+        }
+        
+        const list = VOICES_DICT[currentLang][currentGender] || VOICES_DICT.ja.female;
+        
+        list.forEach(v => {
           const opt = document.createElement('option');
-          opt.value = v.value; opt.textContent = v.label;
+          opt.value = v.value; 
+          opt.textContent = v.label;
           select.appendChild(opt);
         });
+        
+        // 現在設定されている声がリストに含まれているかチェック
+        const exists = list.some(v => v.value === currentVoice);
+        if (!exists && list.length > 0) {
+          // 含まれていなければ、新しい性別リストの最初の声をセット
+          currentVoice = list[0].value;
+        }
         select.value = currentVoice;
       }
 
@@ -1631,12 +1650,19 @@
         currentGender = gender;
         document.querySelectorAll('.voice-toggle-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
+        
+        // 声質オプションの再構築と、新性別でのデフォルト声の自動セット
         rebuildVoiceOptions();
-        updateVoice(document.getElementById('voiceSelect').value);
+        
+        // 更新された声質を反映して発話処理を実行
+        stopSpeaking();
+        if (lastBotAnswer) speakLastAnswerDynamic();
       };
 
       window.updateVoice = function(voiceVal) {
-        currentVoice = voiceVal;
+        if (voiceVal) {
+          currentVoice = voiceVal;
+        }
         stopSpeaking();
         if (lastBotAnswer) speakLastAnswerDynamic();
       };
@@ -1741,6 +1767,10 @@
         e.preventDefault(); 
         unlockAudio();
         loadVoices();
+        
+        // モーダルを開くたびに、声質オプションを最新の言語・性別で再構築（初期表示の名前抜け防止）
+        rebuildVoiceOptions();
+        
         modal.classList.add('active'); 
         if(firstOpen){ 
           firstOpen=false; 
