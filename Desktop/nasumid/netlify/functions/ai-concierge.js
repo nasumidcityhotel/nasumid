@@ -231,13 +231,11 @@ exports.handler = async (event) => {
     if (isEnglish) {
       langCode = 'en-US';
       if (vLower.includes('aoede') || vLower.includes('emily')) {
-        geminiVoice = 'en-US-Chirp3-HD-Aoede'; // 明るい英語女性
+        geminiVoice = 'en-US-Chirp3-HD-Aoede'; // Emily
       } else if (vLower.includes('kore') || vLower.includes('sophia')) {
-        geminiVoice = 'en-US-Chirp3-HD-Kore'; // 上品な英語女性
-      } else if (vLower.includes('charon') || vLower.includes('oliver')) {
-        geminiVoice = 'en-US-Chirp3-HD-Charon'; // 丁寧な英語男性
-      } else if (vLower.includes('fenrir') || vLower.includes('jack')) {
-        geminiVoice = 'en-US-Chirp3-HD-Fenrir'; // 頼もしい英語男性
+        geminiVoice = 'en-US-Chirp3-HD-Kore'; // Sophia
+      } else if (vLower.includes('neural2-f') || vLower.includes('lily')) {
+        geminiVoice = 'en-US-Neural2-F'; // Lily
       } else {
         geminiVoice = 'en-US-Chirp3-HD-Aoede';
       }
@@ -249,16 +247,26 @@ exports.handler = async (event) => {
         geminiVoice = 'ja-JP-Chirp3-HD-Aoede'; // さくら
       } else if (vLower.includes('achernar') || vLower.includes('aoi')) {
         geminiVoice = 'ja-JP-Chirp3-HD-Achernar'; // あおい
-      } else if (vLower.includes('zephyr') || vLower.includes('yuki')) {
-        geminiVoice = 'ja-JP-Chirp3-HD-Zephyr'; // ゆき
-      } else if (vLower.includes('charon') || vLower.includes('takumi')) {
-        geminiVoice = 'ja-JP-Chirp3-HD-Charon'; // たくみ
-      } else if (vLower.includes('alnilam') || vLower.includes('kenji')) {
-        geminiVoice = 'ja-JP-Chirp3-HD-Alnilam'; // けんじ
+      } else if (vLower.includes('zephyr') || vLower.includes('yuki') || vLower.includes('mei')) {
+        geminiVoice = 'ja-JP-Chirp3-HD-Zephyr'; // めい
       }
     }
 
     console.log(`[Backend AI Concierge] Generating text & speech... Selected Voice: ${geminiVoice}`);
+
+    // マスコットに合わせた「上品で可愛い声」のスピード・ピッチチューニング (ホテル用)
+    let speakingRate = 1.03;
+    let pitch = 2.0;
+
+    if (isEnglish) {
+      if (geminiVoice.includes('Aoede')) { speakingRate = 1.05; pitch = 3.0; }
+      else if (geminiVoice.includes('Kore')) { speakingRate = 1.02; pitch = 1.5; }
+      else { speakingRate = 1.04; pitch = 2.5; }
+    } else {
+      if (geminiVoice.includes('Aoede')) { speakingRate = 1.06; pitch = 3.6; } // さくら：明るく上品に可愛らしく！
+      else if (geminiVoice.includes('Achernar')) { speakingRate = 1.02; pitch = 1.8; } // あおい：しっとり上品！
+      else if (geminiVoice.includes('Zephyr')) { speakingRate = 1.04; pitch = 2.8; } // めい：ふんわり愛らしく！
+    }
 
     const ttsUrl = `https://texttospeech.googleapis.com/v1beta1/text:synthesize?key=${GCP_TTS_API_KEY}`;
     const ttsRes = await fetch(ttsUrl, {
@@ -273,8 +281,8 @@ exports.handler = async (event) => {
         audioConfig: {
           audioEncoding: 'LINEAR16',        // 非圧縮WAVを指定
           sampleRateHertz: 48000,          // CDを超える48kHzスタジオ音質を指定
-          speakingRate: 1.0,
-          pitch: 0.0
+          speakingRate: speakingRate,
+          pitch: pitch
         }
       })
     });

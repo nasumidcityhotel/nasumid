@@ -1042,6 +1042,53 @@
       .ai-chat-header { padding: 18px 20px; border-radius: 16px 16px 0 0; }
       .ai-chat-input-area { border-radius: 0 0 16px 16px; padding: 12px 16px; }
     }
+
+    /* ============================================
+    AI LIVE AVATAR (Nasu Mascot "Nasu-Mid-chan" 🍆)
+    ============================================ */
+    .ai-live-avatar {
+      position: relative;
+      width: 52px;
+      height: 52px;
+      background: #ffffff;
+      border-radius: 50%;
+      box-shadow: 0 4px 14px rgba(155, 89, 182, 0.35); /* 高貴な紫ナスシャドウ */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-shrink: 0;
+      overflow: hidden;
+      animation: avatarFloat 2.5s ease-in-out infinite alternate;
+      border: 2px solid rgba(155, 89, 182, 0.45);
+      margin-right: 12px;
+      transition: all 0.3s ease;
+    }
+    
+    .ai-live-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.3s ease;
+    }
+    
+    @keyframes avatarFloat {
+      0% { transform: translateY(0); }
+      100% { transform: translateY(-4px); }
+    }
+
+    /* 喋っているとき（リップシンク連動）：可愛くピコピコバウンス＆左右にゆらゆらスイング */
+    .ai-live-avatar.is-speaking {
+      animation: avatarFloat 2.5s ease-in-out infinite alternate, avatarBounceSpeak 0.7s ease-in-out infinite;
+      border-color: rgba(155, 89, 182, 0.85);
+      box-shadow: 0 4px 20px rgba(155, 89, 182, 0.6);
+    }
+    
+    @keyframes avatarBounceSpeak {
+      0%, 100% { transform: scale(1) rotate(0deg); }
+      25% { transform: scale(1.06) rotate(-4deg); }
+      50% { transform: scale(0.96) rotate(3deg); }
+      75% { transform: scale(1.03) rotate(-2deg); }
+    }
   </style>
 </head>
 
@@ -1341,12 +1388,9 @@
     <div class="ai-modal-content ai-chat-mode">
       <button class="ai-modal-close" id="aiModalClose">×</button>
       <div class="ai-chat-header">
-        <div class="ai-chat-avatar">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path>
-            <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
-            <line x1="12" y1="19" x2="12" y2="22"></line>
-          </svg>
+        <!-- 動く可愛いナス型AIキャラクターアバター（なすみっどちゃん 🍆） -->
+        <div class="ai-live-avatar" id="aiLiveAvatar">
+          <img src="nasu_avatar.png" alt="なすみっどちゃん" onerror="this.src='sheader_logo.png'">
         </div>
         <div style="flex: 1;">
           <div class="ai-chat-name" id="aiChatName">那須ミッドシティ AIコンシェルジュ</div>
@@ -1369,7 +1413,8 @@
       </div>
       <!-- プレミアム音声選択UI (女性・男性) -->
       <div style="background: #1b3a2e; padding: 10px 20px; display: flex; flex-direction: column; gap: 8px; border-bottom: 1px solid rgba(255,255,255,0.1);">
-        <div style="display: flex; align-items: center; gap: 12px;">
+        <!-- 性別選択はマスコットキャラクター用に非表示化し、声質選択のみをスマートに提供 -->
+        <div style="display: none; align-items: center; gap: 12px;">
           <span id="genderLabelEl" style="color:rgba(255,255,255,0.7); font-size:12px; letter-spacing:0.1em; min-width:35px;">性別</span>
           <div style="display:flex; gap:8px;">
             <button id="voiceFemaleBtn" class="voice-toggle-btn active" onclick="setGender('female', this)">👩 女性</button>
@@ -1498,13 +1543,35 @@
       }
 
       const UI_TEXT = {
-        ja: { name: '那須ミッドシティ AIコンシェルジュ', status: 'オンライン', placeholder: 'テキストで質問する...', send: '送信', genderLabel: '性別', voiceLabel: '声質', femaleBtn: '👩 女性', maleBtn: '👨 男性', chips: ['朝食は何時から？', 'おすすめの温泉は？', 'チェックインの時間', '駐車場はある？', '駅からの行き方', '部屋の設備は？'], greeting: 'こんにちは！那須ミッドシティホテルのAIコンシェルジュです。朝食・温泉・アクセスなど、何でもお気軽にお尋ねください。', def: 'ご質問ありがとうございます。その件につきましては、フロントのスタッフが喜んで詳しくご案内いたします。お電話は、0287-67-1400 まで、いつでもお気軽にお問い合わせください。' },
-        en: { name: 'Nasu Midcity AI Concierge', status: 'Online', placeholder: 'Ask a question in English...', send: 'Send', genderLabel: 'Gender', voiceLabel: 'Voice', femaleBtn: '👩 Female', maleBtn: '👨 Male', chips: ['Breakfast time?', 'Recommend Onsen?', 'Check-in time?', 'Is parking free?', 'How to go from station?', 'Room amenities?'], greeting: 'Hello! Welcome to Nasu Midcity Hotel AI Concierge. Please feel free to ask about breakfast, hot springs, access, or anything else.', def: 'Thank you for your question. Our front desk staff will be happy to assist you in detail. Please feel free to call us at +81-287-67-1400 anytime.' }
+        ja: { name: 'なすみっどちゃん (AIコンシェルジュ)', status: 'オンライン', placeholder: 'テキストで質問する...', send: '送信', genderLabel: '性別', voiceLabel: '声質', femaleBtn: '👩 女性', maleBtn: '👨 男性', chips: ['朝食は何時から？', 'おすすめの温泉は？', 'チェックインの時間', '駐車場はある？', '駅からの行き方', '部屋の設備は？'], greeting: 'こんにちは！那須ミッドシティホテル公式マスコットの「なすみっどちゃん」です🍆 朝食・温泉・アクセスなど、何でもお気軽にお尋ねくださいね。', def: 'ご質問ありがとうございます。その件につきましては、フロントのスタッフが喜んで詳しくご案内いたします。お電話は、0287-67-1400 まで、いつでもお気軽にお問い合わせください。' },
+        en: { name: 'Nasu-Mid-chan (AI Concierge)', status: 'Online', placeholder: 'Ask a question in English...', send: 'Send', genderLabel: 'Gender', voiceLabel: 'Voice', femaleBtn: '👩 Female', maleBtn: '👨 Male', chips: ['Breakfast time?', 'Recommend Onsen?', 'Check-in time?', 'Is parking free?', 'How to go from station?', 'Room amenities?'], greeting: 'Hello! I\'m "Nasu-Mid-chan", the official mascot of Nasu Midcity Hotel🍆 Please feel free to ask about breakfast, hot springs, access, or anything else.', def: 'Thank you for your question. Our front desk staff will be happy to assist you in detail. Please feel free to call us at +81-287-67-1400 anytime.' }
       };
 
       const VOICES_DICT = {
-        ja: { female: [{ value: 'ja-JP-Chirp3-HD-Aoede', label: 'さくら (明るく上品な接客女性 👩)' }, { value: 'ja-JP-Chirp3-HD-Achernar', label: 'あおい (しっとり落ち着いた女性 👩)' }, { value: 'ja-JP-Chirp3-HD-Zephyr', label: 'ゆき (温かみのある優しい女性 👩)' }], male: [{ value: 'ja-JP-Chirp3-HD-Charon', label: 'たくみ (丁寧で誠実なホテルマン 👨)' }, { value: 'ja-JP-Chirp3-HD-Alnilam', label: 'けんじ (低音で渋く知性的な男性 👨)' }] },
-        en: { female: [{ value: 'en-US-Chirp3-HD-Aoede', label: 'Emily (Bright & friendly native 👩)' }, { value: 'en-US-Chirp3-HD-Kore', label: 'Sophia (Elegant & professional 👩)' }], male: [{ value: 'en-US-Chirp3-HD-Charon', label: 'Oliver (Polite & professional male 👨)' }, { value: 'en-US-Chirp3-HD-Fenrir', label: 'Jack (Calm & deep-voiced male 👨)' }] }
+        ja: { 
+          female: [
+            { value: 'ja-JP-Chirp3-HD-Aoede', label: 'さくら (明るく上品な妖精 🌸)' }, 
+            { value: 'ja-JP-Chirp3-HD-Achernar', label: 'あおい (しっとり落ち着いた妖精 💎)' }, 
+            { value: 'ja-JP-Chirp3-HD-Zephyr', label: 'めい (ふんわり愛らしい妖精 ❄️)' }
+          ], 
+          male: [
+            { value: 'ja-JP-Chirp3-HD-Aoede', label: 'さくら (明るく上品な妖精 🌸)' }, 
+            { value: 'ja-JP-Chirp3-HD-Achernar', label: 'あおい (しっとり落ち着いた妖精 💎)' }, 
+            { value: 'ja-JP-Chirp3-HD-Zephyr', label: 'めい (ふんわり愛らしい妖精 ❄️)' }
+          ] 
+        },
+        en: { 
+          female: [
+            { value: 'en-US-Chirp3-HD-Aoede', label: 'Emily (Bright & friendly fairy 🎀)' }, 
+            { value: 'en-US-Chirp3-HD-Kore', label: 'Sophia (Elegant & professional 👑)' },
+            { value: 'en-US-Neural2-F', label: 'Lily (Sweet & clear fairy 🌼)' }
+          ], 
+          male: [
+            { value: 'en-US-Chirp3-HD-Aoede', label: 'Emily (Bright & friendly fairy 🎀)' }, 
+            { value: 'en-US-Chirp3-HD-Kore', label: 'Sophia (Elegant & professional 👑)' },
+            { value: 'en-US-Neural2-F', label: 'Lily (Sweet & clear fairy 🌼)' }
+          ] 
+        }
       };
 
       const QA_JA = [
@@ -1576,8 +1643,21 @@
           u.volume = 1.0;
           const voice = getBestVoice(gender);
           if (voice) u.voice = voice;
-          u.onend = () => { statusEl.textContent = UI_TEXT[currentLang].status; resolve(); };
-          u.onerror = () => { statusEl.textContent = UI_TEXT[currentLang].status; resolve(); };
+          
+          // アバターの口パク（リップシンク）を開始！
+          const avatar = document.getElementById('aiLiveAvatar');
+          if (avatar) avatar.classList.add('is-speaking');
+          
+          u.onend = () => { 
+            statusEl.textContent = UI_TEXT[currentLang].status; 
+            if (avatar) avatar.classList.remove('is-speaking');
+            resolve(); 
+          };
+          u.onerror = () => { 
+            statusEl.textContent = UI_TEXT[currentLang].status; 
+            if (avatar) avatar.classList.remove('is-speaking');
+            resolve(); 
+          };
           statusEl.textContent = currentLang === 'en' ? 'Speaking...' : '話しています...';
           window.speechSynthesis.speak(u);
         });
@@ -1671,6 +1751,10 @@
         if (currentAudio) { try { currentAudio.pause(); } catch(e){} currentAudio = null; }
         if (window.speechSynthesis) window.speechSynthesis.cancel();
         statusEl.textContent = UI_TEXT[currentLang].status;
+        
+        // アバターの口パク（リップシンク）を停止
+        const avatar = document.getElementById('aiLiveAvatar');
+        if (avatar) avatar.classList.remove('is-speaking');
       }
 
       async function speakLastAnswerDynamic() {
@@ -1695,9 +1779,19 @@
           if (isMuted) { resolve(); return; }
           const audio = new Audio(`data:${mimeType};base64,${base64}`);
           currentAudio = audio;
-          audio.onended = () => { statusEl.textContent = UI_TEXT[currentLang].status; resolve(); };
+          
+          // アバターの口パク（リップシンク）を開始！
+          const avatar = document.getElementById('aiLiveAvatar');
+          if (avatar) avatar.classList.add('is-speaking');
+          
+          audio.onended = () => { 
+            statusEl.textContent = UI_TEXT[currentLang].status; 
+            if (avatar) avatar.classList.remove('is-speaking');
+            resolve(); 
+          };
           audio.play().catch((err) => {
             console.warn('WAV Autoplay blocked, falling back to browser speak', err);
+            if (avatar) avatar.classList.remove('is-speaking');
             speak(lastBotAnswer, currentGender).then(resolve);
           });
         });
