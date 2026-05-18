@@ -1479,6 +1479,7 @@
       let isMuted = localStorage.getItem('ai_concierge_muted') === 'true';
       let currentLang = localStorage.getItem('ai_concierge_lang') || 'ja';
       let history = [];
+      let voiceList = [];
 
       function updateMuteIcon() {
         const icon = document.getElementById('muteIcon');
@@ -1512,7 +1513,7 @@
         { id: 'onsen', k: ['温泉', 'お風呂', '日帰り', '大浴場', '近くの温泉', 'おすすめ', '源泉'], a: '当ホテル内には大浴場はございませんが、車で15分ほどの場所に日帰り温泉「源泉 那須山」がございます。フロントにて、通常 1,020円のところ、平日 680円、土日祝日 880円になる大変お得な割引券を販売しております。ぜひ那須の名湯をお楽しみください。' },
         { id: 'parking', k: ['駐車場', '車', 'パーキング', '駐車料金', '予約'], a: '無料の駐車場を完備しており、ご予約は不要でございます。車高制限もございませんので、大型車も含めて安心してお停めいただけます。ここを拠点にして、那須高原や塩原温泉郷へ便利に動き出していただけます。' },
         { id: 'access', k: ['アクセス', '行き方', '駅', '新幹線', '徒歩', '場所', '住所', '近い', '東京'], a: '当ホテルはJR那須塩原駅の西口から徒歩わずか 3分 という大変便利な場所にございます。東京駅から新幹線で 約70分 でお越しいただけます。また、お車でお越しの場合は東北自動車道の黒磯板室インターチェンジから 約10分 でございます。' },
-        { id: 'room', k: ['部屋', '客室', 'ベッド', 'wi-fi', 'ワイファイ', 'アメニティ', '個別空調', '防音', '設備', 'デスク'], a: '客室は全室に一流のシモンズ製ベッドを採用しており、確かな休息をお約束いたします。また、全館無料のWi-Fi、個別に温度調節ができる個別空調、静かな環境を守る防音ペアガラス、お仕事に最適な幅 2メートル のワイドデスクを完備しております。' },
+        { id: 'room', k: ['部屋', '客室', 'ベッド', 'wi-fi', 'ワイファイ', 'アメニティ', '個別空調', '防音', '設備', 'デスク'], a: '客室は全室に一流 of シモンズ製ベッドを採用しており、確かな休息をお約束いたします。また、全館無料のWi-Fi、個別に温度調節ができる個別空調、静かな環境を守る防音ペアガラス、お仕事に最適な幅 2メートル のワイドデスクを完備しております。' },
         { id: 'pet', k: ['ペット', '犬', '猫', '同伴', '盲導犬', '補助犬'], a: 'あいにく、ペットを同伴してのご宿泊はご遠慮いただいております。ただし、盲導犬や介助犬などの補助犬は同伴してご宿泊いただけます。何卒ご理解いただけますようお願いいたします。' }
       ];
 
@@ -1528,6 +1529,66 @@
 
       const modal = document.getElementById('aiModal'), closeBtn = document.getElementById('aiModalClose'), chatBody = document.getElementById('aiChatBody'), msgArea = document.getElementById('aiChatMessages'), vBtn = document.getElementById('aiVoiceBtn'), tInput = document.getElementById('aiTextInput'), sBtn = document.getElementById('aiSendBtn'), statusEl = document.getElementById('aiChatStatus'), allBtns = document.querySelectorAll('.ai-fab, .ai-concierge-banner .btn');
       let recognition = null, isListening = false, firstOpen = true, currentGender = 'female', currentVoice = 'ja-JP-Chirp3-HD-Aoede', lastBotAnswer = '', currentAudio = null;
+
+      function loadVoices() {
+        if (window.speechSynthesis) {
+          voiceList = window.speechSynthesis.getVoices();
+        }
+      }
+      if (window.speechSynthesis) {
+        window.speechSynthesis.onvoiceschanged = loadVoices;
+        loadVoices();
+      }
+
+      function unlockAudio() {
+        if (window.speechSynthesis) {
+          const u = new SpeechSynthesisUtterance('');
+          u.volume = 0;
+          window.speechSynthesis.speak(u);
+        }
+      }
+
+      function getBestVoice(gender) {
+        const langPrefix = (currentLang === 'ja') ? 'ja' : 'en';
+        const femaleKeywords = (currentLang === 'ja') 
+          ? ['Nanami Online', 'Nanami', 'Kyoko Premium', 'Kyoko', 'Google 日本語']
+          : ['Zira', 'Samantha', 'Google US English', 'en-US'];
+        const maleKeywords = (currentLang === 'ja')
+          ? ['Keita Online', 'Keita', 'Otoya Premium', 'Otoya', 'Google 日本語']
+          : ['David', 'Google US English', 'en-US'];
+
+        const keywords = (gender === 'male') ? maleKeywords : femaleKeywords;
+        for (const kw of keywords) {
+          const v = voiceList.find(v => v.name.includes(kw) && v.lang.startsWith(langPrefix));
+          if (v) return v;
+        }
+        return voiceList.find(v => v.lang.startsWith(langPrefix)) || null;
+      }
+
+      function speak(text, gender) {
+        return new Promise((resolve) => {
+          if (!window.speechSynthesis || isMuted) { resolve(); return; }
+          window.speechSynthesis.cancel();
+          const u = new SpeechSynthesisUtterance(text);
+          u.lang = (currentLang === 'ja') ? 'ja-JP' : 'en-US';
+          u.rate = 0.95;
+          u.pitch = gender === 'male' ? 0.95 : 1.05;
+          u.volume = 1.0;
+          const voice = getBestVoice(gender);
+          if (voice) u.voice = voice;
+          u.onend = () => { statusEl.textContent = UI_TEXT[currentLang].status; resolve(); };
+          u.onerror = () => { statusEl.textContent = UI_TEXT[currentLang].status; resolve(); };
+          statusEl.textContent = currentLang === 'en' ? 'Speaking...' : '話しています...';
+          window.speechSynthesis.speak(u);
+        });
+      }
+
+      function matchLocalAI(q) {
+        const clean = q.toLowerCase();
+        const qaList = (currentLang === 'ja') ? QA_JA : QA_EN;
+        const match = qaList.find(item => item.k.some(key => clean.includes(key)));
+        return match ? match.a : (currentLang === 'ja' ? UI_TEXT.ja.def : UI_TEXT.en.def);
+      }
 
       window.toggleLanguage = function() {
         currentLang = (currentLang === 'ja') ? 'en' : 'ja';
@@ -1593,8 +1654,14 @@
         try {
           const res = await fetch('/.netlify/functions/ai-concierge', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: lastBotAnswer, voice: currentVoice }) });
           const data = await res.json();
-          if (data.audio) await playGcpTtsAudio(data.audio, data.mimeType);
-        } catch(e) {}
+          if (data.audio) {
+            await playGcpTtsAudio(data.audio, data.mimeType);
+          } else {
+            await speak(lastBotAnswer, currentGender);
+          }
+        } catch(e) {
+          await speak(lastBotAnswer, currentGender);
+        }
       }
 
       async function playGcpTtsAudio(base64, mimeType = 'audio/wav') {
@@ -1603,7 +1670,10 @@
           const audio = new Audio(`data:${mimeType};base64,${base64}`);
           currentAudio = audio;
           audio.onended = () => { statusEl.textContent = UI_TEXT[currentLang].status; resolve(); };
-          audio.play().catch(resolve);
+          audio.play().catch((err) => {
+            console.warn('WAV Autoplay blocked, falling back to browser speak', err);
+            speak(lastBotAnswer, currentGender).then(resolve);
+          });
         });
       }
 
@@ -1630,20 +1700,101 @@
 
       async function respond(q) {
         statusEl.textContent = currentLang === 'en' ? 'Thinking...' : '応答を考えています...';
+        history.push({ role: 'user', text: q });
+
         try {
-          const res = await fetch('/.netlify/functions/ai-concierge', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ messages: [...history, { role: 'user', text: q }], voice: currentVoice }) });
+          const res = await fetch('/.netlify/functions/ai-concierge', { 
+            method: 'POST', 
+            headers: { 'Content-Type': 'application/json' }, 
+            body: JSON.stringify({ messages: history, voice: currentVoice }) 
+          });
+          
+          if (!res.ok) throw new Error('API server returned error');
           const data = await res.json();
           lastBotAnswer = data.answer;
+          history.push({ role: 'model', text: data.answer });
+          
           addMsg(data.answer, 'bot');
-          if (data.audio) await playGcpTtsAudio(data.audio, data.mimeType);
-        } catch(e) { addMsg(currentLang === 'ja' ? UI_TEXT.ja.def : UI_TEXT.en.def, 'bot'); }
+          if (data.audio) {
+            await playGcpTtsAudio(data.audio, data.mimeType);
+          } else {
+            await speak(data.answer, currentGender);
+          }
+        } catch(e) {
+          console.warn('[API Error, falling back to local QA]', e);
+          const fallbackAns = matchLocalAI(q);
+          lastBotAnswer = fallbackAns;
+          history.push({ role: 'model', text: fallbackAns });
+          
+          addMsg(fallbackAns, 'bot');
+          await speak(fallbackAns, currentGender);
+        }
       }
 
       document.getElementById('aiMuteBtn').addEventListener('click', () => { isMuted = !isMuted; localStorage.setItem('ai_concierge_muted', isMuted); updateMuteIcon(); if (isMuted) stopSpeaking(); });
       document.getElementById('aiLangBtn').addEventListener('click', () => { window.toggleLanguage(); });
-      allBtns.forEach(b => b.addEventListener('click', (e) => { e.preventDefault(); modal.classList.add('active'); if(firstOpen){ firstOpen=false; applyLanguage(); setTimeout(addChips, 600); } }));
+      
+      allBtns.forEach(b => b.addEventListener('click', (e) => { 
+        e.preventDefault(); 
+        unlockAudio();
+        loadVoices();
+        modal.classList.add('active'); 
+        if(firstOpen){ 
+          firstOpen=false; 
+          applyLanguage(); 
+          const greeting = UI_TEXT[currentLang].greeting;
+          lastBotAnswer = greeting;
+          addMsg(greeting, 'bot');
+          setTimeout(() => {
+            speakLastAnswerDynamic();
+          }, 300);
+          setTimeout(addChips, 600); 
+        } 
+      }));
+      
       closeBtn.addEventListener('click', () => { stopSpeaking(); modal.classList.remove('active'); });
+      modal.addEventListener('click', (e) => { if (e.target === modal) { stopSpeaking(); modal.classList.remove('active'); } });
+      
       sBtn.addEventListener('click', () => { const t = tInput.value.trim(); if(t){ tInput.value=''; addMsg(t, 'user'); respond(t); }});
+      tInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { const t = tInput.value.trim(); if(t){ tInput.value=''; addMsg(t, 'user'); respond(t); } } });
+
+      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (SR) {
+        recognition = new SR();
+        recognition.continuous = false;
+        recognition.interimResults = false;
+        recognition.onresult = (ev) => {
+          const t = ev.results[0][0].transcript;
+          if (t.trim()) {
+            addMsg(t, 'user');
+            respond(t);
+          }
+        };
+        recognition.onend = () => {
+          isListening = false;
+          vBtn.classList.remove('listening');
+          statusEl.textContent = UI_TEXT[currentLang].status;
+        };
+        recognition.onerror = () => {
+          isListening = false;
+          vBtn.classList.remove('listening');
+          statusEl.textContent = UI_TEXT[currentLang].status;
+        };
+      } else {
+        if (vBtn) vBtn.style.display = 'none';
+      }
+
+      if (vBtn && recognition) {
+        vBtn.addEventListener('click', () => {
+          if (isListening) { recognition.stop(); return; }
+          stopSpeaking();
+          isListening = true;
+          vBtn.classList.add('listening');
+          statusEl.textContent = currentLang === 'en' ? 'Listening...' : '聞いています...';
+          recognition.start();
+        });
+      }
+
       applyLanguage();
     })();
   </script>
