@@ -660,8 +660,8 @@ fadeEls.forEach(el => io.observe(el));
           safeResolve();
         });
 
-        // セーフティネット：30秒以上無応答になった場合は強制的にロック解除
-        setTimeout(safeResolve, 30000);
+        // セーフティネット：3秒以上無応答になった場合は強制的にロック解除して進行を止めない
+        setTimeout(safeResolve, 3000);
         
       } catch(e) {
         console.error('[Blob Play Error]', e);
