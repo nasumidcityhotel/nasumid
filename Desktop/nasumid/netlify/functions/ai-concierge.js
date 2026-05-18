@@ -324,8 +324,8 @@ exports.handler = async (event) => {
       const VOICEVOX_API_KEY = process.env.VOICEVOX_API_KEY || 'free';
 
       try {
-        // tts.quest のAPI（GETで一瞬で音声ファイルを返してくれる超高速エンドポイント）
-        const voicevoxUrl = `https://deprecatedapis.tts.quest/v2/voicevox/audio/?key=${VOICEVOX_API_KEY}&text=${encodeURIComponent(speechReadyText)}&speaker=${voicevoxSpeaker}`;
+        // tts.quest の最新安定版 v3 API
+        const voicevoxUrl = `https://api.tts.quest/v3/voicevox/synthesis?key=${VOICEVOX_API_KEY}&text=${encodeURIComponent(speechReadyText)}&speaker=${voicevoxSpeaker}`;
         
         // Node標準のhttpsモジュールによる超堅牢な取得（fetch未定義エラーを100%防止）
         const buffer = await getVoiceVoxAudio(voicevoxUrl);
