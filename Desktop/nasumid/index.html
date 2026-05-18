@@ -1861,6 +1861,29 @@
         chatBody.scrollTop = chatBody.scrollHeight;
       }
 
+      let currentTypingEl = null;
+
+      function showTypingIndicator() {
+        if (currentTypingEl) return;
+        const d = document.createElement('div');
+        d.className = 'ai-msg ai-msg-bot';
+        d.innerHTML = `
+          <div class="ai-typing" id="aiTypingIndicator" style="margin-bottom: 0;">
+            <span></span><span></span><span></span>
+          </div>
+        `;
+        msgArea.appendChild(d);
+        chatBody.scrollTop = chatBody.scrollHeight;
+        currentTypingEl = d;
+      }
+
+      function hideTypingIndicator() {
+        if (currentTypingEl) {
+          currentTypingEl.remove();
+          currentTypingEl = null;
+        }
+      }
+
       async function respond(q) {
         statusEl.textContent = currentLang === 'en' ? 'Thinking...' : '応答を考えています...';
         history.push({ role: 'user', text: q });
@@ -1869,9 +1892,11 @@
         const botAnswer = matchLocalAI(q);
         lastBotAnswer = botAnswer;
         history.push({ role: 'model', text: botAnswer });
-        addMsg(botAnswer, 'bot');
 
-        // 2. 決定した回答文をバックエンドの音声合成APIに送り、VOICEVOXの可愛い声を取得！
+        // 2. 音声データが届くまで、画面には可愛い「思考中ドットアニメーション」を表示！
+        showTypingIndicator();
+
+        // 3. 決定した回答文をバックエンドの音声合成APIに送り、VOICEVOXの可愛い声を取得！
         try {
           const res = await fetch('/.netlify/functions/ai-concierge', { 
             method: 'POST', 
@@ -1879,17 +1904,26 @@
             body: JSON.stringify({ text: botAnswer, voice: currentVoice }) 
           });
           
+          hideTypingIndicator(); // 思考中アニメーションを消去！
+
           if (res.ok) {
             const data = await res.json();
             if (data.audio) {
               statusEl.textContent = currentLang === 'en' ? 'Speaking...' : '話しています...';
+              
+              // 4. 【極上同期】音声が再生され始めるのと「完全に同時に」タイピング文字表示を開始！！！
+              addMsg(botAnswer, 'bot');
               await playGcpTtsAudio(data.audio, data.mimeType);
               return;
             }
           }
+          // 音声取得エラー時は、文字表示のみ行ってローカルTTS発声へ
+          addMsg(botAnswer, 'bot');
           await speak(botAnswer, currentGender);
         } catch(e) {
           console.warn('[VOICEVOX API Error, falling back to local TTS]', e);
+          hideTypingIndicator(); // エラー時もインジケーターを消去！
+          addMsg(botAnswer, 'bot');
           await speak(botAnswer, currentGender);
         } finally {
           statusEl.textContent = UI_TEXT[currentLang].status;
