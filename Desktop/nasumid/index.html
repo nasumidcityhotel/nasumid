@@ -1716,6 +1716,7 @@
           
           addMsg(data.answer, 'bot');
           if (data.audio) {
+            statusEl.textContent = currentLang === 'en' ? 'Speaking...' : '話しています...';
             await playGcpTtsAudio(data.audio, data.mimeType);
           } else {
             await speak(data.answer, currentGender);
@@ -1728,6 +1729,8 @@
           
           addMsg(fallbackAns, 'bot');
           await speak(fallbackAns, currentGender);
+        } finally {
+          statusEl.textContent = UI_TEXT[currentLang].status;
         }
       }
 

@@ -115,7 +115,7 @@ exports.handler = async (event) => {
     const { messages = [], text = '', voice = 'ja-JP-Chirp3-HD-Aoede' } = JSON.parse(event.body || '{}');
 
     // APIキーの設定（環境変数優先、なければ有効なキーへフォールバック）
-    const GEMINI_API_KEY = process.env.GEMINI_API_KEY || 'AIzaSyDXOsKKjwnxV3EorrBtwGhmTaTtUJVrhDk';
+    const GEMINI_API_KEY = process.env.GEMINI_API_KEY || 'AIzaSyBcoOdM42W3iOaP5NF8OqtX4p2FDZKUOB8';
     const GCP_TTS_API_KEY = process.env.GCP_TTS_API_KEY || 'AIzaSyAwuzXONJ4Mw_9pqbj6WsvRrxFh3nMCpP4';
 
     let answerText = '';
