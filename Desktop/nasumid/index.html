@@ -1807,9 +1807,45 @@
       function addMsg(text, type) {
         const d = document.createElement('div');
         d.className = 'ai-msg ai-msg-' + type;
-        d.innerHTML = '<div class="ai-msg-bubble">' + text + '</div>';
+        
+        const bubble = document.createElement('div');
+        bubble.className = 'ai-msg-bubble';
+        d.appendChild(bubble);
         msgArea.appendChild(d);
         chatBody.scrollTop = chatBody.scrollHeight;
+
+        // ユーザーの発言、または英語などの場合はアニメーションなしで一瞬で表示
+        if (type === 'user' || currentLang !== 'ja') {
+          bubble.innerHTML = text;
+          return;
+        }
+
+        // 日本語のボットの返答のみ、音声の読み上げスピードと調和させて1文字ずつタイピング表示！
+        let i = 0;
+        const speed = 75; // 1文字あたり75ミリ秒（VOICEVOXの自然な発話スピードに同期！）
+        bubble.innerHTML = '';
+        
+        function typeWriter() {
+          if (i < text.length) {
+            // <a>タグなどのHTMLタグが含まれている場合は、タグが壊れないように一括出力するセーフティ処理
+            if (text.substr(i, 4) === '<a h') {
+              const closeIdx = text.indexOf('</a>', i);
+              if (closeIdx !== -1) {
+                bubble.innerHTML += text.substring(i, closeIdx + 4);
+                i = closeIdx + 4;
+              } else {
+                bubble.innerHTML += text.charAt(i);
+                i++;
+              }
+            } else {
+              bubble.innerHTML += text.charAt(i);
+              i++;
+            }
+            chatBody.scrollTop = chatBody.scrollHeight;
+            setTimeout(typeWriter, speed);
+          }
+        }
+        typeWriter();
       }
 
       function addChips() {
