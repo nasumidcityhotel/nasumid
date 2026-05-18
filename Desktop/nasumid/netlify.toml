@@ -1,6 +1,17 @@
 [build]
-  publish = "."
+  publish = "./"
   functions = "netlify/functions"
+
+[functions]
+  node_bundler = "esbuild"
+
+[functions."ai-concierge"]
+  timeout = 26
+
+[[headers]]
+  for = "/*.html"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
 
 [[headers]]
   for = "/*"

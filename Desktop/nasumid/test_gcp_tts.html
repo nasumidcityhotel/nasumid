@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>GCP TTS Debugger</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; line-height: 1.6; }
+    pre { background: #f4f4f4; padding: 15px; border-radius: 5px; overflow-x: auto; }
+    .error { color: red; font-weight: bold; }
+    .success { color: green; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h1>GCP Text-to-Speech API デバッガー</h1>
+  <button id="btn">APIテスト実行</button>
+  <div id="status"></div>
+  <pre id="output">結果がここに表示されます...</pre>
+
+  <script>
+    const GCP_TTS_API_KEY = 'AIzaSyAwuzXONJ4Mw_9pqbj6WsvRrxFh3nMCpP4';
+
+    document.getElementById('btn').onclick = async () => {
+      const statusEl = document.getElementById('status');
+      const outputEl = document.getElementById('output');
+      statusEl.className = '';
+      statusEl.textContent = 'API呼び出し中...';
+      outputEl.textContent = '';
+
+      try {
+        const res = await fetch(`https://texttospeech.googleapis.com/v1beta1/text:synthesize?key=${GCP_TTS_API_KEY}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            input: { text: 'テスト音声です' },
+            voice: {
+              languageCode: 'ja-JP',
+              name: 'ja-JP-Chirp3-HD-Aoede'
+            },
+            audioConfig: {
+              audioEncoding: 'LINEAR16',
+              sampleRateHertz: 48000,
+              speakingRate: 1.0,
+              pitch: 0.0
+            }
+          })
+        });
+
+        const statusText = `HTTP Status: ${res.status} ${res.statusText}`;
+        console.log(statusText);
+
+        const data = await res.json();
+        outputEl.textContent = JSON.stringify(data, null, 2);
+
+        if (res.ok && data.audioContent) {
+          statusEl.className = 'success';
+          statusEl.textContent = '成功！音声データを受信しました。';
+          
+          // 再生テスト
+          const audio = new Audio(`data:audio/wav;base64,${data.audioContent}`);
+          audio.play().catch(e => console.warn('自動再生がブロックされました:', e));
+        } else {
+          statusEl.className = 'error';
+          statusEl.textContent = `失敗: ${data.error ? data.error.message : 'データなし'}`;
+        }
+      } catch (err) {
+        statusEl.className = 'error';
+        statusEl.textContent = `例外発生: ${err.message}`;
+        outputEl.textContent = err.stack;
+      }
+    };
+  </script>
+</body>
+</html>

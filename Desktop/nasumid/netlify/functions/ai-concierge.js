@@ -35,8 +35,8 @@ const SYSTEM_PROMPT = `
 - 住所：〒329-3156 栃木県那須塩原市方京1-1-10
 - 電話番号：0287-67-1400 (フロント)
 - アクセス：JR那須塩原駅西口より徒歩3分。東北自動車道「黒磯板室IC」より約10分。
-- 駐車場：無料駐車場完備（予約不要、車高制限なし。大型車もOK）。那須高原、板室、塩原温泉郷への車移動の拠点に便利。
-- チェックイン 15:00〜 / チェックアウト 〜10:00
+- 駐車場：無料駐車場完備（予約不要、しゃこうせいげんなし。大型車もOK）。那須高原、板室、塩原温泉郷への車移動の拠点に便利。
+- チェックイン 15:00〜 / チェックアウト 〜11:00
 
 【設備・サービス (https://nasu-midcity-info.netlify.app/)】
 - 客室：全室シモンズベッドを採用。個別空調、防音ペアガラス完備。
@@ -143,6 +143,9 @@ function optimizeTextForSpeech(text, isEnglish = false) {
   // 5. 電話番号などの記号 (例: 0287-67-1400 -> ゼロにーはちなな、ろくなな、いちよんぜろぜろ)
   optimized = optimized.replace(/0287-67-1400/g, 'れい にー はち なな、ろく なな、いち よん ぜろ ぜろ');
 
+  // 車高制限の読み上げ調整
+  optimized = optimized.replace(/車高制限/g, 'しゃこうせいげん');
+
   // 6. 漢数字の正しい読み上げ調整
   optimized = optimized.replace(/那須御養卵/g, 'なすごようらん');
   optimized = optimized.replace(/那須郡/g, 'なすぐん');
@@ -192,13 +195,62 @@ exports.handler = async (event) => {
     // APIキーの設定（環境変数優先、なければ有効なキーへフォールバック）
     const GCP_TTS_API_KEY = process.env.GCP_TTS_API_KEY || 'AIzaSyAwuzXONJ4Mw_9pqbj6WsvRrxFh3nMCpP4';
 
-    let answerText = text;
-
-    if (!answerText) {
+    if (!text) {
       return {
         statusCode: 400,
         headers: corsHeaders,
-        body: JSON.stringify({ error: 'Text parameter is required for voice synthesis' })
+        body: JSON.stringify({ error: 'Text parameter is required' })
+      };
+    }
+
+    let answerText = null;
+
+    // 1. Gemini API を使用して、SYSTEM_PROMPTに基づいた超高精度のRAG回答を動的に生成！！！
+    const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+    if (GEMINI_API_KEY) {
+      console.log(`[Backend AI Concierge] Generating answer via Gemini 2.5 Flash...`);
+      try {
+        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+        const geminiRes = await fetch(geminiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [
+              {
+                parts: [
+                  { text: SYSTEM_PROMPT },
+                  { text: `ユーザーの質問: ${text}` }
+                ]
+              }
+            ],
+            generationConfig: {
+              temperature: 0.2,
+              maxOutputTokens: 200
+            }
+          })
+        });
+
+        if (geminiRes.ok) {
+          const geminiData = await geminiRes.json();
+          if (geminiData.candidates && geminiData.candidates[0] && geminiData.candidates[0].content && geminiData.candidates[0].content.parts[0]) {
+            answerText = geminiData.candidates[0].content.parts[0].text.trim();
+            console.log(`[Gemini Generated Answer]: ${answerText}`);
+          }
+        } else {
+          console.error('Gemini API Error:', geminiRes.status);
+        }
+      } catch (geminiErr) {
+        console.error('Gemini API Exception:', geminiErr);
+      }
+    }
+
+    // Geminiが動作しなかった場合は、フロントエンドの100%正確なローカルQ&Aにフォールバックさせるためにエラーを返す！
+    if (!answerText) {
+      console.warn('Gemini RAG unavailable. Requesting frontend local fallback.');
+      return {
+        statusCode: 503,
+        headers: corsHeaders,
+        body: JSON.stringify({ error: 'Gemini RAG service unavailable, falling back to local exact QA' })
       };
     }
 
