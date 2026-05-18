@@ -1603,7 +1603,8 @@
       ];
 
       const modal = document.getElementById('aiModal'), closeBtn = document.getElementById('aiModalClose'), chatBody = document.getElementById('aiChatBody'), msgArea = document.getElementById('aiChatMessages'), vBtn = document.getElementById('aiVoiceBtn'), tInput = document.getElementById('aiTextInput'), sBtn = document.getElementById('aiSendBtn'), statusEl = document.getElementById('aiChatStatus'), allBtns = document.querySelectorAll('.ai-fab, .ai-concierge-banner .btn');
-      let recognition = null, isListening = false, firstOpen = true, currentGender = 'female', currentVoice = 'ja-JP-Chirp3-HD-Aoede', lastBotAnswer = '', currentAudio = null;
+      let recognition = null, isListening = false, firstOpen = true, currentGender = 'female', currentVoice = 'ja-JP-Chirp3-HD-Aoede', lastBotAnswer = '';
+      let currentAudio = new Audio(); // シングルトン化：自動再生ブロックを完全に避けるため最初から1つのインスタンスを使い回す！
       let currentPlaybackRate = parseFloat(localStorage.getItem('ai_concierge_speed') || '1.0');
 
       function loadVoices() {
@@ -1622,12 +1623,11 @@
           u.volume = 0;
           window.speechSynthesis.speak(u);
         }
-        // HTML5 Audio（WAV/MP3再生）のブラウザ自動再生ロックをユーザー操作イベント中に完全解除！
+        // 唯一のシングルトンインスタンス currentAudio の自動再生制限を、ユーザー操作イベント内で無音再生させて完全解除！！！
         try {
-          const dummy = new Audio();
-          dummy.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAAA'; // 無音の極小WAV
-          dummy.volume = 0;
-          dummy.play().catch(e => console.log('[Audio Unlock] Already unlocked or denied', e));
+          currentAudio.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAAA'; // 無音の極小WAV
+          currentAudio.volume = 0;
+          currentAudio.play().catch(e => console.log('[Audio Unlock] Singleton audio pre-unlocked', e));
         } catch(e) {
           console.warn('[Audio Unlock Error]', e);
         }
@@ -1788,7 +1788,12 @@
       };
 
       function stopSpeaking() {
-        if (currentAudio) { try { currentAudio.pause(); } catch(e){} currentAudio = null; }
+        if (currentAudio) { 
+          try { 
+            currentAudio.pause(); 
+            currentAudio.src = ''; // 音声ソースをクリアして完全に停止
+          } catch(e){} 
+        }
         if (window.speechSynthesis) window.speechSynthesis.cancel();
         statusEl.textContent = UI_TEXT[currentLang].status;
         
@@ -1834,22 +1839,23 @@
             const blob = base64ToBlob(base64, mimeType);
             objectUrl = URL.createObjectURL(blob);
             
-            const audio = new Audio(objectUrl);
-            audio.playbackRate = currentPlaybackRate; // 音声再生速度（普通・早く・最速）を適用！
-            currentAudio = audio;
+            // 新規のAudio生成は一切行わず、ユーザーが事前にタップ/アンロックしたシングルトンインスタンスを使い回す！
+            currentAudio.src = objectUrl;
+            currentAudio.volume = 1.0; // 音量を戻す
+            currentAudio.playbackRate = currentPlaybackRate; // 音声再生速度（普通・早く・最速）を適用！
             
             // アバターの口パク（リップシンク）を開始！
             const avatar = document.getElementById('aiLiveAvatar');
             if (avatar) avatar.classList.add('is-speaking');
             
-            audio.onended = () => { 
+            currentAudio.onended = () => { 
               statusEl.textContent = UI_TEXT[currentLang].status; 
               if (avatar) avatar.classList.remove('is-speaking');
               if (objectUrl) URL.revokeObjectURL(objectUrl); // メモリ解放！
               resolve(); 
             };
-            audio.play().catch((err) => {
-              console.warn('WAV Autoplay blocked', err);
+            currentAudio.play().catch((err) => {
+              console.warn('WAV Autoplay blocked on singleton', err);
               if (avatar) avatar.classList.remove('is-speaking');
               if (objectUrl) URL.revokeObjectURL(objectUrl);
               resolve();
