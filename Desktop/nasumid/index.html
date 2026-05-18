@@ -1822,33 +1822,32 @@
         statusEl.textContent = currentLang === 'en' ? 'Thinking...' : '応答を考えています...';
         history.push({ role: 'user', text: q });
 
+        // 1. Geminiは一切使わず、ローカルの100%正確なQ&Aマッチングで回答を即座に決定！
+        const botAnswer = matchLocalAI(q);
+        lastBotAnswer = botAnswer;
+        history.push({ role: 'model', text: botAnswer });
+        addMsg(botAnswer, 'bot');
+
+        // 2. 決定した回答文をバックエンドの音声合成APIに送り、VOICEVOXの可愛い声を取得！
         try {
           const res = await fetch('/.netlify/functions/ai-concierge', { 
             method: 'POST', 
             headers: { 'Content-Type': 'application/json' }, 
-            body: JSON.stringify({ messages: history, voice: currentVoice }) 
+            body: JSON.stringify({ text: botAnswer, voice: currentVoice }) 
           });
           
-          if (!res.ok) throw new Error('API server returned error');
-          const data = await res.json();
-          lastBotAnswer = data.answer;
-          history.push({ role: 'model', text: data.answer });
-          
-          addMsg(data.answer, 'bot');
-          if (data.audio) {
-            statusEl.textContent = currentLang === 'en' ? 'Speaking...' : '話しています...';
-            await playGcpTtsAudio(data.audio, data.mimeType);
-          } else {
-            await speak(data.answer, currentGender);
+          if (res.ok) {
+            const data = await res.json();
+            if (data.audio) {
+              statusEl.textContent = currentLang === 'en' ? 'Speaking...' : '話しています...';
+              await playGcpTtsAudio(data.audio, data.mimeType);
+              return;
+            }
           }
+          await speak(botAnswer, currentGender);
         } catch(e) {
-          console.warn('[API Error, falling back to local QA]', e);
-          const fallbackAns = matchLocalAI(q);
-          lastBotAnswer = fallbackAns;
-          history.push({ role: 'model', text: fallbackAns });
-          
-          addMsg(fallbackAns, 'bot');
-          await speak(fallbackAns, currentGender);
+          console.warn('[VOICEVOX API Error, falling back to local TTS]', e);
+          await speak(botAnswer, currentGender);
         } finally {
           statusEl.textContent = UI_TEXT[currentLang].status;
         }

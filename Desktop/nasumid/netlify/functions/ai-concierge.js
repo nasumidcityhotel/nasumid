@@ -187,62 +187,18 @@ exports.handler = async (event) => {
   }
 
   try {
-    const { messages = [], text = '', voice = 'ja-JP-Chirp3-HD-Aoede' } = JSON.parse(event.body || '{}');
+    const { text = '', voice = 'ja-JP-Chirp3-HD-Aoede' } = JSON.parse(event.body || '{}');
 
     // APIキーの設定（環境変数優先、なければ有効なキーへフォールバック）
-    const GEMINI_API_KEY = process.env.GEMINI_API_KEY || 'AIzaSyBcoOdM42W3iOaP5NF8OqtX4p2FDZKUOB8';
     const GCP_TTS_API_KEY = process.env.GCP_TTS_API_KEY || 'AIzaSyAwuzXONJ4Mw_9pqbj6WsvRrxFh3nMCpP4';
 
-    let answerText = '';
+    let answerText = text;
 
-    // 1. 動的対話と単体音声合成の振り分け
-    if (messages && messages.length > 0) {
-      // Gemini 2.0 Flash によるテキスト応答生成
-      const contents = messages.map(msg => {
-        let role = 'user';
-        if (msg.role === 'model' || msg.role === 'bot' || msg.role === 'assistant') {
-          role = 'model';
-        }
-        return {
-          role: role,
-          parts: [{ text: msg.text }]
-        };
-      });
-
-      const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
-      const geminiRes = await fetch(geminiUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: contents,
-          systemInstruction: {
-            parts: [{ text: SYSTEM_PROMPT }]
-          },
-          generationConfig: {
-            temperature: 0.7,
-            maxOutputTokens: 500
-          }
-        })
-      });
-
-      if (!geminiRes.ok) {
-        const errText = await geminiRes.text();
-        throw new Error(`Gemini API Error: ${errText}`);
-      }
-
-      const geminiData = await geminiRes.json();
-      if (!geminiData.candidates || geminiData.candidates.length === 0) {
-        throw new Error('Gemini API returned no candidates');
-      }
-      answerText = geminiData.candidates[0].content.parts[0].text.trim();
-    } else if (text) {
-      // 音声合成のみルート
-      answerText = text;
-    } else {
+    if (!answerText) {
       return {
         statusCode: 400,
         headers: corsHeaders,
-        body: JSON.stringify({ error: 'Either messages or text parameter is required' })
+        body: JSON.stringify({ error: 'Text parameter is required for voice synthesis' })
       };
     }
 
