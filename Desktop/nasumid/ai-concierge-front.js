@@ -328,7 +328,7 @@ fadeEls.forEach(el => io.observe(el));
             const apiTarget = (location.protocol === 'file:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')
               ? 'https://nasu-midcity.netlify.app/.netlify/functions/ai-concierge'
               : '/.netlify/functions/ai-concierge';
-            const res = await fetch(apiTarget, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: txt, voice: currentVoice }) });
+            const res = await fetch(apiTarget, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: txt, voice: currentVoice, ttsOnly: true }) });
             if (res.ok) {
               const data = await res.json();
               if (data.audio) {
@@ -348,7 +348,7 @@ fadeEls.forEach(el => io.observe(el));
                 const apiTarget = (location.protocol === 'file:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')
                   ? 'https://nasu-midcity.netlify.app/.netlify/functions/ai-concierge'
                   : '/.netlify/functions/ai-concierge';
-                const res = await fetch(apiTarget, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: nextTxt, voice: currentVoice }) });
+                const res = await fetch(apiTarget, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: nextTxt, voice: currentVoice, ttsOnly: true }) });
                 if (res.ok) {
                   const data = await res.json();
                   if (data.audio) voiceCache[nextCacheKey] = data.audio;
@@ -532,7 +532,7 @@ fadeEls.forEach(el => io.observe(el));
           const res = await fetch(apiTarget, { 
             method: 'POST', 
             headers: { 'Content-Type': 'application/json' }, 
-            body: JSON.stringify({ text: currentText, voice: currentVoice }) 
+            body: JSON.stringify({ text: currentText, voice: currentVoice, ttsOnly: true }) 
           });
           if (res.ok) {
             const data = await res.json();
@@ -559,7 +559,7 @@ fadeEls.forEach(el => io.observe(el));
               const res = await fetch(apiTarget, { 
                 method: 'POST', 
                 headers: { 'Content-Type': 'application/json' }, 
-                body: JSON.stringify({ text: nextText, voice: currentVoice }) 
+                body: JSON.stringify({ text: nextText, voice: currentVoice, ttsOnly: true }) 
               });
               if (res.ok) {
                 const data = await res.json();
