@@ -213,39 +213,90 @@ export async function POST(req) {
     }
 
     const isEnglish = voice.toLowerCase().includes('en-us');
+    
+    // ==========================================
+    // 英語翻訳の適用 (ttsOnlyの時は既に翻訳済みなのでスキップ)
+    // ==========================================
+    if (isEnglish && !ttsOnly) {
+      if (answerText.includes('公式マスコット')) answerText = "Hello! I'm 'Mori-Nasu-chan', the official mascot of Nasu Midcity Hotel. Please feel free to ask me anything.";
+      else if (answerText.includes('ドラム式洗濯乾燥機')) answerText = "We have coin-operated washer/dryers in the laundry area on the 1st floor. Available 24 hours.";
+      else if (answerText.includes('電子レンジ')) answerText = "On the 1st floor laundry area, we have a vending machine, a free ice machine, and a microwave oven for you to use.";
+      else if (answerText.includes('専用の喫煙所')) answerText = "All rooms are non-smoking, but there is a designated smoking room in the 1st floor laundry area.";
+      else if (answerText.includes('朝食バイキング')) answerText = "Breakfast buffet is served free of charge for all guests from 6:45 to 9:30 AM at the 1st floor restaurant 'Au Revoir'.";
+      else if (answerText.includes('夕食')) answerText = "Dinner is available at the 1st floor restaurant 'Au Revoir' from 5:30 PM to 9:00 PM.";
+      else if (answerText.includes('大鷹')) answerText = "We don't have a public bath in the hotel, but 'Ootaka no Yu', a premium hot spring 10 minutes away by car, is highly recommended.";
+      else if (answerText.includes('キャッシュバック')) answerText = "A-Card is a point card with no annual fee. You get 10% cash back on your stay!";
+      else if (answerText.includes('添い寝')) answerText = "Children under elementary school age can sleep in the same bed with parents for free (no amenities included). Breakfast is 650 yen extra.";
+      else if (answerText.includes('ビジネス出張')) answerText = "All rooms have Wi-Fi, LAN, a large desk, and a trouser press. Perfect for business trips!";
+      else if (answerText.includes('チェックイン')) answerText = "Check-in is from 3:00 PM, and check-out is until 11:00 AM.";
+      else if (answerText.includes('駐車場')) answerText = "We have a free parking lot for standard passenger cars (first-come, first-served).";
+      else if (answerText.includes('徒歩3分')) answerText = "We are located just a 3-minute walk from the East Exit of Nasushiobara Station. Address: 1-1-10 Hōkyō, Nasushiobara, Tochigi.";
+      else answerText = "Thank you for your question. Unfortunately, I don't have detailed information on that. Please call the front desk at extension 9 for assistance.";
+    }
+
     const speechReadyText = optimizeTextForSpeech(answerText, isEnglish);
 
     let audioContent = null;
 
-    // textOnly=true の場合はTTS合成を完全スキップして即時返却（フロントエンドが後から文ごとにttsOnly=trueで再取得するため不要）
+    // textOnly=true の場合はTTS合成を完全スキップ
     if (textOnly) {
       return NextResponse.json({ answer: answerText, audio: null, mimeType: 'audio/mp3' }, { headers: corsHeaders });
     }
 
-    // VOICEVOX APIのみで音声合成（3キーローテーション）
-    let voicevoxSpeaker = 2;
-    const vLower = voice.toLowerCase();
-    if (vLower.includes('achernar') || vLower.includes('aoi')) voicevoxSpeaker = 8;
-    else if (vLower.includes('zephyr') || vLower.includes('mei')) voicevoxSpeaker = 10;
-
-    const voicevoxKeys = [
-      process.env.VOICEVOX_API_KEY_1,
-      process.env.VOICEVOX_API_KEY_2,
-      process.env.VOICEVOX_API_KEY_3,
-    ].filter(k => k && k.trim());
-
-    console.log("[Backend TTS] VOICEVOX Speaker ID: " + voicevoxSpeaker + " / Keys available: " + voicevoxKeys.length);
-
-    for (let i = 0; i < voicevoxKeys.length; i++) {
+    // 英語の場合はVOICEVOXが一切非対応（英単語を処理できない）ため、Google Cloud TTSの高音質・高音（可愛い系）ボイスを使用する
+    if (isEnglish && process.env.GCP_TTS_API_KEY) {
+      console.log("[Backend TTS] Using Google Cloud TTS for English character voice");
       try {
-        console.log("[Backend TTS] Trying VOICEVOX Key #" + (i + 1));
-        audioContent = await getVoicevoxAudioV1(speechReadyText, voicevoxSpeaker, voicevoxKeys[i]);
-        console.log("[Backend TTS] Success with Key #" + (i + 1));
-        break; // 成功したらループを抜ける
-      } catch (err) {
-        console.error("[Backend TTS] Key #" + (i + 1) + " failed:", err.message);
-        if (i === voicevoxKeys.length - 1) {
-          console.error("[Backend TTS] All VOICEVOX keys exhausted");
+        const gcpUrl = `https://texttospeech.googleapis.com/v1/text:synthesize?key=${process.env.GCP_TTS_API_KEY}`;
+        const gcpReq = {
+          input: { text: speechReadyText },
+          voice: { languageCode: 'en-US', name: 'en-US-Neural2-F' }, // Fは女性の高音ボイス
+          audioConfig: { 
+            audioEncoding: 'MP3',
+            speakingRate: 1.1, // 少し早め
+            pitch: 4.0 // ピッチを上げてアニメキャラクター（さくら）に近づける
+          }
+        };
+        const gcpRes = await fetch(gcpUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(gcpReq)
+        });
+        
+        if (gcpRes.ok) {
+          const gcpData = await gcpRes.json();
+          audioContent = gcpData.audioContent;
+          console.log("[Backend TTS] Success with GCP TTS English");
+        }
+      } catch (gcpErr) {
+        console.error("[Backend TTS] GCP TTS English Exception:", gcpErr.message);
+      }
+    } else if (!isEnglish) {
+      // 日本語の場合はVOICEVOX APIのみで音声合成（3キーローテーション）
+      let voicevoxSpeaker = 2;
+      const vLower = voice.toLowerCase();
+      if (vLower.includes('achernar') || vLower.includes('aoi')) voicevoxSpeaker = 8;
+      else if (vLower.includes('zephyr') || vLower.includes('mei')) voicevoxSpeaker = 10;
+
+      const voicevoxKeys = [
+        process.env.VOICEVOX_API_KEY_1,
+        process.env.VOICEVOX_API_KEY_2,
+        process.env.VOICEVOX_API_KEY_3,
+      ].filter(k => k && k.trim());
+
+      console.log("[Backend TTS] VOICEVOX Speaker ID: " + voicevoxSpeaker + " / Keys available: " + voicevoxKeys.length);
+
+      for (let i = 0; i < voicevoxKeys.length; i++) {
+        try {
+          console.log("[Backend TTS] Trying VOICEVOX Key #" + (i + 1));
+          audioContent = await getVoicevoxAudioV1(speechReadyText, voicevoxSpeaker, voicevoxKeys[i]);
+          console.log("[Backend TTS] Success with Key #" + (i + 1));
+          break; // 成功したらループを抜ける
+        } catch (err) {
+          console.error("[Backend TTS] Key #" + (i + 1) + " failed:", err.message);
+          if (i === voicevoxKeys.length - 1) {
+            console.error("[Backend TTS] All VOICEVOX keys exhausted");
+          }
         }
       }
     }

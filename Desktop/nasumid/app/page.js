@@ -276,7 +276,10 @@ export default function Home() {
 
   const handleToggleLanguage = () => {
     const nextLang = currentLang === 'ja' ? 'en' : 'ja';
+    const nextVoice = VOICES_DICT[nextLang][currentGender][0].value;
+    
     setCurrentLang(nextLang);
+    setCurrentVoice(nextVoice);
     localStorage.setItem('ai_concierge_lang', nextLang);
     setStatusText(UI_TEXT[nextLang].status);
     stopSpeaking();
@@ -286,7 +289,7 @@ export default function Home() {
     setMessages([]); // メッセージ配列をリセットして重複防止
     
     setTimeout(() => {
-      speakLastAnswerDynamic(greeting, nextLang, undefined, true);
+      speakLastAnswerDynamic(greeting, nextLang, nextVoice, true);
     }, 150);
   };
 
@@ -494,21 +497,27 @@ export default function Home() {
           playGcpTtsAudio(audioData)
         ]);
       } else {
-        // VOICEVOX音声取得失敗（アクセス制限等）→ ブラウザ内蔵の音声読み上げ（Web Speech API）で絶対に無音にさせない！
-        setIsSpeaking(true);
-        const fallbackPromise = new Promise(resolve => {
-          if (!window.speechSynthesis) { resolve(); return; }
-          const utterance = new SpeechSynthesisUtterance(txt);
-          utterance.lang = lang === 'en' ? 'en-US' : 'ja-JP';
-          utterance.rate = 1.1; // ブラウザの音声は少し遅いので1.1倍速
-          utterance.onend = resolve;
-          utterance.onerror = resolve;
-          window.speechSynthesis.speak(utterance);
-        });
-        await Promise.all([
-          typewriteSentence(txt, mySessionId),
-          fallbackPromise
-        ]);
+        // 音声データが取得できなかった場合（VOICEVOXのエラー、または英語モード）
+        if (lang === 'en') {
+          // 英語はVOICEVOXが発音できないため、英語の時だけ特別にブラウザ音声を使用
+          setIsSpeaking(true);
+          const fallbackPromise = new Promise(resolve => {
+            if (!window.speechSynthesis) { resolve(); return; }
+            const utterance = new SpeechSynthesisUtterance(txt);
+            utterance.lang = 'en-US';
+            utterance.rate = 1.1;
+            utterance.onend = resolve;
+            utterance.onerror = resolve;
+            window.speechSynthesis.speak(utterance);
+          });
+          await Promise.all([
+            typewriteSentence(txt, mySessionId),
+            fallbackPromise
+          ]);
+        } else {
+          // お客様のご要望により、日本語でVOICEVOXが弾かれた場合は、パソコンの標準音声など他の声は一切使わず「完全無音（文字だけ）」にする
+          await typewriteSentence(txt, mySessionId);
+        }
       }
 
       sentenceIndex++;
