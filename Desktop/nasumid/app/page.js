@@ -427,16 +427,8 @@ export default function Home() {
       setStatusText(lang === 'en' ? 'Speaking...' : 'お話し中...');
     }
 
-    const sentences = fullText.split(/([。！\?\n？、])/).reduce((acc, cur) => {
-      if (!cur) return acc;
-      if (cur.match(/^[。！\?\n？、]+$/)) { 
-        if (acc.length > 0) acc[acc.length - 1] += cur; 
-        else acc.push(cur);
-      } else {
-        acc.push(cur);
-      }
-      return acc;
-    }, []).filter(s => s.trim() !== '');
+    // APIのIPレート制限（429エラー）を完全に回避するため、文章を分割せずに1回のリクエストで全音声を取得する
+    const sentences = [fullText];
 
     let sentenceIndex = 0;
     
@@ -460,9 +452,9 @@ export default function Home() {
 
       if (!audioData) {
         try {
-          // VOICEVOX生成が遅い場合に永遠に待たされるのを防ぐため、8秒でタイムアウトしてテキスト表示へフォールバックする
+          // VOICEVOX生成が遅い場合に永遠に待たされるのを防ぐため、20秒でタイムアウトしてテキスト表示へフォールバックする
           const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 8000);
+          const timeoutId = setTimeout(() => controller.abort(), 20000);
 
           const res = await fetch('/api/concierge', { 
             method: 'POST', 

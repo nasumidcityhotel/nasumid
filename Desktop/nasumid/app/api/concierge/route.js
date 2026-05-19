@@ -245,7 +245,7 @@ export async function POST(req) {
       } catch (err) {
         console.error("[Backend TTS] Key #" + (i + 1) + " failed:", err.message);
         if (i === voicevoxKeys.length - 1) {
-          console.error("[Backend TTS] All VOICEVOX keys exhausted - text only response");
+          console.error("[Backend TTS] All VOICEVOX keys exhausted");
         }
       }
     }
