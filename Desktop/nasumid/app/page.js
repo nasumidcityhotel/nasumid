@@ -186,7 +186,7 @@ export default function Home() {
               rec.stop();
               handleUserSendRef.current?.(lastText);
             }
-          }, 450);
+          }, 2000); // 喋り終わりの判定時間を450msから2000ms（2秒）に延長して、途切れないようにする
         }
       };
 
@@ -494,8 +494,21 @@ export default function Home() {
           playGcpTtsAudio(audioData)
         ]);
       } else {
-        // VOICEVOX音声取得失敗 → テキスト表示のみ（AI音声フォールバック無し）
-        await typewriteSentence(txt, mySessionId);
+        // VOICEVOX音声取得失敗（アクセス制限等）→ ブラウザ内蔵の音声読み上げ（Web Speech API）で絶対に無音にさせない！
+        setIsSpeaking(true);
+        const fallbackPromise = new Promise(resolve => {
+          if (!window.speechSynthesis) { resolve(); return; }
+          const utterance = new SpeechSynthesisUtterance(txt);
+          utterance.lang = lang === 'en' ? 'en-US' : 'ja-JP';
+          utterance.rate = 1.1; // ブラウザの音声は少し遅いので1.1倍速
+          utterance.onend = resolve;
+          utterance.onerror = resolve;
+          window.speechSynthesis.speak(utterance);
+        });
+        await Promise.all([
+          typewriteSentence(txt, mySessionId),
+          fallbackPromise
+        ]);
       }
 
       sentenceIndex++;
