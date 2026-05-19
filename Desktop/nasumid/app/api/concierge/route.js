@@ -133,6 +133,10 @@ function optimizeTextForSpeech(text, isEnglish = false) {
   optimized = optimized.replace(/那須御養卵/g, 'なすごようらん');
   optimized = optimized.replace(/大鷹の湯/g, 'おおたかのゆ');
   optimized = optimized.replace(/Aカード/g, 'えーかーど');
+  optimized = optimized.replace(/TKG/g, 'たまごかけごはん');
+  optimized = optimized.replace(/¥/g, '');
+  optimized = optimized.replace(/,/g, '');
+  optimized = optimized.replace(/・/g, '、');
   optimized = optimized.replace(/内線9番/g, 'ないせん きゅうばん');
   
   // 電話番号の完全除去（TTSエンジンがハイフンと数字の連続でクラッシュするため）
