@@ -566,7 +566,6 @@ export default function Home() {
   };
 
   const handleChipClick = (chipText) => {
-    setMessages(prev => [...prev, { role: 'user', text: chipText }]);
     handleUserSend(chipText);
   };
 

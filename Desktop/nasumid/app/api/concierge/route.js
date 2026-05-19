@@ -279,6 +279,16 @@ function formatRagResponse(section, query) {
     return "こんにちは！那須ミッドシティホテル公式マスコット「もりなすちゃん」です🍆 何でもお気軽にお尋ねくださいね。";
   }
 
+  // 0-A. 最優先：駅からの行き方・アクセス
+  if (q.includes('駅からの行き方') || q.includes('アクセス') || q.includes('行き方') || q.includes('どうやっていく')) {
+    return "当ホテルは、JR那須塩原駅の【西口】から徒歩わずか3分という抜群の好立地にございます！改札を出て西口方面に進み、ロータリーを左に回りながらまっすぐ進んでいただくと、すぐに右手に当ホテルが見えてまいります。";
+  }
+
+  // 0-B. 最優先：駐車場（誤字の「駐車増」も含む）
+  if (q.includes('駐車場') || q.includes('駐車増') || q.includes('くるま') || q.includes('車') || q.includes('停め')) {
+    return "敷地内に屋外の無料駐車場を完備しております。普通乗用車であれば、事前のご予約は不要で【完全無料】にて何回でも出入り自由でご利用いただけます！大型車やバスの場合は事前にご連絡をお願いいたします。";
+  }
+
   // 1. 朝食・TKG・卵の種類
   if (titleLine.includes('朝食') || titleLine.includes('卵かけご飯') || titleLine.includes('tkg') || q.includes('朝食') || q.includes('ごはん') || q.includes('卵') || q.includes('tkg')) {
     if (q.includes('何時') || q.includes('営業時間') || q.includes('時間')) {
