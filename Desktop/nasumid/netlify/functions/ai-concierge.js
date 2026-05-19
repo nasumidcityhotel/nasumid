@@ -212,8 +212,8 @@ exports.handler = async (event) => {
 
   try {
     const { text = '', voice = 'ja-JP-Chirp3-HD-Aoede', ttsOnly = false } = JSON.parse(event.body || '{}');
-    const GOOGLE_CLOUD_API = (process.env.GOOGLE_CLOUD_API || 'AIzaSyCN7xNnjbjf-7giSjVZ2ULi7q6lELWcgIc').trim();
-    const GEMINI_API_KEY = (process.env.GEMINI_API_KEY || 'AIzaSyAaO73iMcXLYcyjkwYMaUJFVpqE4xS6BW4').trim();
+    const GOOGLE_CLOUD_API = (process.env.GOOGLE_CLOUD_API || '').trim();
+    const GEMINI_API_KEY = (process.env.GEMINI_API_KEY || '').trim();
     const GCP_TTS_API_KEY = process.env.GCP_TTS_API_KEY || GEMINI_API_KEY || GOOGLE_CLOUD_API;
 
     if (!text) return { statusCode: 400, headers: corsHeaders, body: JSON.stringify({ error: 'Text required' }) };
