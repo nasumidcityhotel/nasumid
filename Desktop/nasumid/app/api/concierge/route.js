@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 
 // ===================================================
 // 那須ミッドシティホテル AIコンシェルジュ バックエンド
-// 【100%ローカル・RAG直通案内エンジン ＆ VOICEVOX API】
+// 【100%ローカル・RAG直通案内エンジン ＆ VOICEVOX V3 API】
 // ===================================================
 
 const SYSTEM_PROMPT = `
@@ -20,7 +20,7 @@ const SYSTEM_PROMPT = `
 
 【朝食のこだわりメニュー・洋食とサラダ】
 洋食コーナーでは、毎朝焼き上げるサクサク香ばしい自家製クロワッサンや、ヨーロッパの高級クロワッサンである「ダイアモンドギッフェリ」が大人気。
-その他、胡麻ロールやミニコッペパン、定番のスクランブルエッグなどもございます。
+その他、胡麻ロールやミニコッペパン、定番 of スクランブルエッグなどもございます。
 サラダ・シリアルコーナーでは、新鮮な地元那須野原産の野菜やオーガニック野菜を使ったコールスロー、季節の葉物サラダ、ポテトサラダ、マカロニサラダ、ヘルシーな海藻サラダなどを日替わりで提供しております。
 
 【那須御養卵のラインナップ（白玉・赤玉・さくら）】
@@ -161,12 +161,23 @@ function optimizeTextForSpeech(text, isEnglish = false) {
 
   let optimized = text;
   
+  // コロン時間の日本語化 (例: 6:45 -> 六時四十五分, 9:30 -> 九時半)
+  optimized = optimized.replace(/6:30/g, '六時半');
+  optimized = optimized.replace(/6:45/g, '六時四十五分');
+  optimized = optimized.replace(/9:00/g, '九時');
+  optimized = optimized.replace(/9:30/g, '九時半');
+  optimized = optimized.replace(/15:00/g, '十五時');
+  optimized = optimized.replace(/11:00/g, '十一時');
+  optimized = optimized.replace(/1階/g, 'いっかい');
+  optimized = optimized.replace(/2階/g, 'にかい');
+  optimized = optimized.replace(/1,000円/g, '千円');
+  
   // 円マークやカンマの除去・置換
   optimized = optimized.replace(/¥/g, '');
   optimized = optimized.replace(/,/g, '');
   optimized = optimized.replace(/・/g, '、');
   
-  // コロン時間の日本語化 (例: 6:45 -> 6時45分, 9:30 -> 9時30分)
+  // 時間コロンの通常の変換
   optimized = optimized.replace(/(\d+):(\d+)/g, '$1時$2分');
   
   // 特殊記号の削除・置換
@@ -176,6 +187,10 @@ function optimizeTextForSpeech(text, isEnglish = false) {
   optimized = optimized.replace(/[➔➔➔➔➔➔➔➔➔➔➔➔➔➔➔➔]/g, '、');
   optimized = optimized.replace(/🍆/g, ''); // 茄子マークは読み上げでは除去
   
+  // 絵文字の完全除去
+  optimized = optimized.replace(/[🌸💎❄️🎀👑🌼⭐🌟✨🦊💡🍀🎵👀👩👨🏨📞📱]/g, '');
+  optimized = optimized.replace(/[\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF]/g, '');
+
   // 英単語のカタカナ置換（音声エンジン対策）
   optimized = optimized.replace(/TKG/gi, 'たまごかけごはん');
   optimized = optimized.replace(/WiFi/gi, 'ワイファイ');
@@ -210,7 +225,7 @@ const DIRECT_QA_MAP = [
   },
   {
     match: (q) => q.includes('卵') || q.includes('たまご') || q.includes('tkg') || q.includes('御養卵'),
-    answer: "当ホテルのTKG（卵かけご飯）では、地元・稲見商店のブランド卵「那須御養卵」を3種類ご用意しております！\n1. 「白玉」：生臭さがなくコクと甘みが強い定番卵。\n2. 「赤玉」：プロ絶賛の味が濃厚な最高峰ブランド卵。\n3. 「さくら」：純国産鶏が産む、カプサイシン配合飼料で育った濃厚でふわふわになる卵。\nこれらに特製醤油と4〜5種類のプレミアムトッピング（小ねぎ、かつお節、佃煮昆布、岩塩等）を合わせて、究極のTKGをお楽しみいただけます🍆"
+    answer: "当ホテルのTKG（卵かけご飯）では、地元・稲見商店のブランド卵「那須御養卵」を3種類ご用意しております！\n1. 「白玉」：生臭さがなくコクと甘みが強い定番卵。\n2. 「赤玉」：プロ絶賛の味が濃厚な最高峰ブランド卵。\n3. 「さくら」：純国産鶏が産む、カプサイシン配合飼料で育った濃厚でふわふわになる卵。\nこれらに特製醤油と4〜5種類のプレミアムトッピング（小ねぎ、かつお節、佃煮昆布、岩塩等）を合わせて、究極 of TKGをお楽しみいただけます🍆"
   },
   {
     match: (q) => q.includes('夕食') || q.includes('ディナー') || q.includes('レストラン') || q.includes('夜ご飯') || q.includes('晩御飯') || q.includes('オールヴォワール'),
@@ -333,67 +348,71 @@ function formatRagResponse(sectionText) {
 }
 
 // ==========================================
-// VOICEVOX 音声合成 (tts.quest v2 API) - Base64返却
+// VOICEVOX 音声合成 (tts.quest v3 API) - ポーリング＆Base64堅牢返却
 // ==========================================
-async function getVoicevoxAudioV2(text, speaker, apiKey = '') {
+async function getVoicevoxAudioV3(text, speaker, apiKey = '') {
   try {
     const optimizedText = optimizeTextForSpeech(text);
     if (!optimizedText) return null;
     
-    console.log(`[Voicevox API] Synthesizing: "${optimizedText}" (Speaker: ${speaker})`);
+    console.log(`[Voicevox V3 API] Synthesizing: "${optimizedText}" (Speaker: ${speaker})`);
     
-    let url = `https://api.tts.quest/v2/voicevox/synthesis?speaker=${speaker}&text=${encodeURIComponent(optimizedText)}`;
-    if (apiKey) {
-      url += `&key=${apiKey}`;
-    }
-
+    const url = `https://api.tts.quest/v3/voicevox/synthesis?key=${apiKey}&text=${encodeURIComponent(optimizedText)}&speaker=${speaker}`;
+    
     const headers = {
       'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
     };
 
+    // 1. 生成開始リクエスト
     const res = await fetch(url, { headers });
     if (!res.ok) {
-      throw new Error(`tts.quest V2 API returned status ${res.status}`);
+      throw new Error(`tts.quest V3 synthesis init failed with status ${res.status}`);
     }
 
     const json = await res.json();
-    let audioUrl = json.mp3DownloadUrl || json.wavDownloadUrl;
+    if (!json.success) {
+      throw new Error(`tts.quest V3 API success is false: ${json.errorMessage || 'Unknown error'}`);
+    }
 
-    // レスポンス準備待ち（ポーリングフォールバック）
-    if (!audioUrl && json.retryAfter) {
-      const waitMs = Math.max(json.retryAfter * 1000, 1500);
-      console.log(`[Voicevox API] Audio rendering, waiting ${waitMs}ms...`);
-      await new Promise(r => setTimeout(r, waitMs));
+    const mp3Url = json.mp3DownloadUrl || json.mp3Url;
+    const statusUrl = json.audioStatusUrl;
+
+    if (!mp3Url || !statusUrl) {
+      throw new Error(`Invalid V3 API response: missing mp3DownloadUrl or audioStatusUrl. Keys received: ${Object.keys(json).join(', ')}`);
+    }
+
+    console.log(`[Voicevox V3 API] Init successful. Polling audioStatusUrl...`);
+
+    // 2. 生成完了まで最大15秒間ポーリング
+    for (let i = 0; i < 15; i++) {
+      await new Promise(r => setTimeout(r, 1000));
       
-      const pollRes = await fetch(url, { headers });
-      if (pollRes.ok) {
-        const pollJson = await pollRes.json();
-        audioUrl = pollJson.mp3DownloadUrl || pollJson.wavDownloadUrl;
+      const statRes = await fetch(statusUrl, { headers });
+      if (!statRes.ok) continue;
+
+      const statJson = await statRes.json();
+      if (statJson.isAudioReady) {
+        console.log(`[Voicevox V3 API] Audio is ready! Downloading from: ${mp3Url}`);
+        
+        // 3. 準備完了したら mp3Url からバイナリをダウンロード
+        const audioRes = await fetch(mp3Url, { headers });
+        if (!audioRes.ok) {
+          throw new Error(`Failed to download audio binary from ${mp3Url}`);
+        }
+
+        const arrayBuffer = await audioRes.arrayBuffer();
+        return Buffer.from(arrayBuffer).toString('base64');
+      }
+      
+      if (statJson.isAudioError) {
+        throw new Error("VOICEVOX synthesis processing error");
       }
     }
-
-    if (!audioUrl) {
-      throw new Error("Failed to get audio download URL from tts.quest V2");
-    }
-
-    // スキームの正規化
-    if (audioUrl.startsWith('//')) {
-      audioUrl = 'https:' + audioUrl;
-    } else if (audioUrl.startsWith('/')) {
-      audioUrl = 'https://api.tts.quest' + audioUrl;
-    }
-
-    console.log(`[Voicevox API] Fetching audio binary from: ${audioUrl}`);
-    const audioRes = await fetch(audioUrl, { headers });
-    if (!audioRes.ok) {
-      throw new Error(`Failed to download audio binary from ${audioUrl}`);
-    }
-
-    const arrayBuffer = await audioRes.arrayBuffer();
-    return Buffer.from(arrayBuffer).toString('base64');
+    
+    throw new Error("VOICEVOX V3 synthesis timeout after 15 seconds");
   } catch (err) {
-    console.error("[Voicevox API Error]", err);
-    return null;
+    console.error("[Voicevox V3 Error]", err);
+    throw err;
   }
 }
 
@@ -404,19 +423,32 @@ export async function POST(req) {
   try {
     const { text, voice, ttsOnly } = await req.json();
     const query = (text || '').trim();
-    const voicevoxSpeaker = 2; // 四国めたん
+
+    // ボイスモデルマッピング（フロントの Chirp ボイスを VOICEVOX の話者IDに完璧に変換）
+    // デフォルト：四国めたん (2), aoi/achernar: 春日部つむぎ (8), mei/zephyr: 雨晴はう (10)
+    let voicevoxSpeaker = 2;
+    const vLower = (voice || '').toLowerCase();
+    if (vLower.includes('achernar') || vLower.includes('aoi')) {
+      voicevoxSpeaker = 8;
+    } else if (vLower.includes('zephyr') || vLower.includes('mei')) {
+      voicevoxSpeaker = 10;
+    }
 
     // APIキーの読み込み（デフォルトフォールバックを明示的にセット）
     const VOICEVOX_API_KEY = (process.env.VOICEVOX_API_KEY || 'j-81N719n201661').trim();
 
     // 1. 音声合成のみのリクエスト（文節ストリーミング再生用）
     if (ttsOnly) {
-      const audioBase64 = await getVoicevoxAudioV2(query, voicevoxSpeaker, VOICEVOX_API_KEY);
-      return NextResponse.json({ audio: audioBase64 });
+      try {
+        const audioBase64 = await getVoicevoxAudioV3(query, voicevoxSpeaker, VOICEVOX_API_KEY);
+        return NextResponse.json({ audio: audioBase64 });
+      } catch (err) {
+        return NextResponse.json({ audio: null, error: err.message, stack: err.stack }, { status: 500 });
+      }
     }
 
     // 2. テキスト＋音声の通常質問リクエスト
-    console.log(`[Concierge POST] Question: "${query}"`);
+    console.log(`[Concierge POST] Question: "${query}", mapped speaker: ${voicevoxSpeaker}`);
     
     // 超精密ダイレクトQ&Aテーブルでまず検索
     let answerText = '';
@@ -434,7 +466,7 @@ export async function POST(req) {
     }
 
     // 初回音声合成も一緒に行う
-    const audioBase64 = await getVoicevoxAudioV2(answerText, voicevoxSpeaker, VOICEVOX_API_KEY);
+    const audioBase64 = await getVoicevoxAudioV3(answerText, voicevoxSpeaker, VOICEVOX_API_KEY);
 
     return NextResponse.json({
       answer: answerText,
