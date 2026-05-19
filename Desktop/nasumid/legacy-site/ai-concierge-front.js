@@ -325,9 +325,11 @@ fadeEls.forEach(el => io.observe(el));
           audioData = voiceCache[cacheKey];
         } else {
           try {
-            const apiTarget = (location.protocol === 'file:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')
-              ? 'https://nasu-midcity.netlify.app/.netlify/functions/ai-concierge'
-              : '/.netlify/functions/ai-concierge';
+            const apiTarget = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
+              ? '/api/concierge'
+              : (location.protocol === 'file:')
+                ? 'https://nasumidcityp.netlify.app/.netlify/functions/ai-concierge'
+                : '/.netlify/functions/ai-concierge';
             const res = await fetch(apiTarget, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: txt, voice: currentVoice, ttsOnly: true }) });
             if (res.ok) {
               const data = await res.json();
@@ -345,9 +347,11 @@ fadeEls.forEach(el => io.observe(el));
           if (!voiceCache[nextCacheKey]) {
             (async () => {
               try {
-                const apiTarget = (location.protocol === 'file:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')
-                  ? 'https://nasu-midcity.netlify.app/.netlify/functions/ai-concierge'
-                  : '/.netlify/functions/ai-concierge';
+                const apiTarget = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
+                  ? '/api/concierge'
+                  : (location.protocol === 'file:')
+                    ? 'https://nasumidcityp.netlify.app/.netlify/functions/ai-concierge'
+                    : '/.netlify/functions/ai-concierge';
                 const res = await fetch(apiTarget, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: nextTxt, voice: currentVoice, ttsOnly: true }) });
                 if (res.ok) {
                   const data = await res.json();
@@ -359,7 +363,7 @@ fadeEls.forEach(el => io.observe(el));
         }
 
         if (audioData) {
-          await playGcpTtsAudio(audioData, 'audio/wav');
+          await playGcpTtsAudio(audioData, 'audio/mp3');
         } else {
           await speak(txt, currentGender);
         }
@@ -461,9 +465,11 @@ fadeEls.forEach(el => io.observe(el));
     // 1. まずは RAG (Gemini AI) を優先して呼び出し、動的に「大鷹の湯」などの詳細知識を検索して回答を生成！
     try {
       // file:/// (ダブルクリック) または localhost (ローカル開発) の場合は本番のAPIを直接叩く！
-      const apiTarget = (location.protocol === 'file:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')
-        ? 'https://nasu-midcity.netlify.app/.netlify/functions/ai-concierge'
-        : '/.netlify/functions/ai-concierge';
+      const apiTarget = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
+        ? '/api/concierge'
+        : (location.protocol === 'file:')
+          ? 'https://nasumidcityp.netlify.app/.netlify/functions/ai-concierge'
+          : '/.netlify/functions/ai-concierge';
 
       const res = await fetch(apiTarget, { 
         method: 'POST', 
@@ -525,9 +531,11 @@ fadeEls.forEach(el => io.observe(el));
       } else {
         // まだキャッシュになければ、今すぐネットから取得（最初の1文目はココが走るが、短いので0.15秒で終わる！）
         try {
-          const apiTarget = (location.protocol === 'file:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')
-            ? 'https://nasu-midcity.netlify.app/.netlify/functions/ai-concierge'
-            : '/.netlify/functions/ai-concierge';
+          const apiTarget = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
+            ? '/api/concierge'
+            : (location.protocol === 'file:')
+              ? 'https://nasumidcityp.netlify.app/.netlify/functions/ai-concierge'
+              : '/.netlify/functions/ai-concierge';
 
           const res = await fetch(apiTarget, { 
             method: 'POST', 
@@ -553,9 +561,11 @@ fadeEls.forEach(el => io.observe(el));
         if (!voiceCache[nextCacheKey]) {
           (async () => {
             try {
-              const apiTarget = (location.protocol === 'file:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')
-                ? 'https://nasu-midcity.netlify.app/.netlify/functions/ai-concierge'
-                : '/.netlify/functions/ai-concierge';
+              const apiTarget = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
+                ? '/api/concierge'
+                : (location.protocol === 'file:')
+                  ? 'https://nasumidcityp.netlify.app/.netlify/functions/ai-concierge'
+                  : '/.netlify/functions/ai-concierge';
               const res = await fetch(apiTarget, { 
                 method: 'POST', 
                 headers: { 'Content-Type': 'application/json' }, 
@@ -579,7 +589,7 @@ fadeEls.forEach(el => io.observe(el));
         // 音声再生とタイピング描画を並行して実行し、両方が終わるのを待つ
         await Promise.all([
           typewriteSentence(bubbleContainer, currentText),
-          playGcpTtsAudio(audioData, 'audio/wav')
+          playGcpTtsAudio(audioData, 'audio/mp3')
         ]);
       } else {
         // 音声が取れなかった場合はブラウザのローカル音声でフォールバック
@@ -609,7 +619,7 @@ fadeEls.forEach(el => io.observe(el));
     return new Blob([byteArray], { type: mimeType });
   }
 
-  async function playGcpTtsAudio(base64, mimeType = 'audio/wav') {
+  async function playGcpTtsAudio(base64, mimeType = 'audio/mp3') {
     return new Promise((resolve) => {
       if (isMuted) { resolve(); return; }
       
@@ -640,7 +650,10 @@ fadeEls.forEach(el => io.observe(el));
         objectUrl = URL.createObjectURL(blob);
         
         // 新規の音声を設定する前に、前の音声の再生状態を確実に完全静止＆リセット！！！
-        // これにより、複数音声の衝突によるフリーズや再生詰まりバグを100%完全解決！！！
+        // onpauseをクリアしてからpauseする（そうしないと前のonpauseが誤発火する）
+        currentAudio.onended = null;
+        currentAudio.onerror = null;
+        currentAudio.onpause = null;
         currentAudio.pause();
         
         // シングルトンインスタンス currentAudio を使い回す
@@ -653,15 +666,15 @@ fadeEls.forEach(el => io.observe(el));
         
         currentAudio.onended = safeResolve;
         currentAudio.onerror = safeResolve;
-        currentAudio.onpause = safeResolve; 
+        // onpauseは使用しない（stopSpeaking()によるpause時に誤発火してresolveされてしまうため）
         
         currentAudio.play().catch((err) => {
           console.warn('WAV Autoplay blocked on singleton', err);
           safeResolve();
         });
 
-        // セーフティネット：3秒以上無応答になった場合は強制的にロック解除して進行を止めない
-        setTimeout(safeResolve, 3000);
+        // セーフティネット：15秒以上無応答になった場合は強制的にロック解除して進行を止めない
+        setTimeout(safeResolve, 15000);
         
       } catch(e) {
         console.error('[Blob Play Error]', e);

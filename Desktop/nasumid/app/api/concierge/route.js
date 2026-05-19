@@ -1,483 +1,258 @@
+// ===================================================
+// 那須ミッドシティホテル AIコンシェルジュ バックエンド (Next.js App Router)
+// 【絶対堅牢・LLM完全排除・RAG完全準拠版】
+// RAGにない情報は一切回答せず、内線9番（フロント）へ即座に誘導します。
+// ===================================================
+
 import { NextResponse } from 'next/server';
 
-// ===================================================
-// 那須ミッドシティホテル AIコンシェルジュ バックエンド
-// 【100%ローカル・RAG直通案内エンジン ＆ VOICEVOX V3 API】
-// ===================================================
+// CORSヘッダー定義
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'Content-Type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS'
+};
 
-const SYSTEM_PROMPT = `
-【朝食バイキング・営業時間】
-朝食バイキングは、ご宿泊のお客様全員に無料で提供される人気のサービスです。
-営業時間は毎朝「6:45〜9:30」（ラストオーダーは9:15）です。
-場所は1階レストラン「オールヴォワール」にてご提供しております。
-外来（宿泊以外）のお客様もご利用いただけ、料金は大人950円、お子様（4歳〜小学生）650円です。
-那須の美味しい朝日が差し込む明るいレストランで、那須の朝をお楽しみください。
+// リダイレクト追跡機能付きの超堅牢な HTTP GET 関数 (VOICEVOX 音声取得用)
+async function httpGet(url) {
+  const res = await fetch(url, { redirect: 'follow' });
+  if (!res.ok) {
+    throw new Error("GET failed with status " + res.status + " for " + url);
+  }
+  const arrayBuffer = await res.arrayBuffer();
+  return Buffer.from(arrayBuffer);
+}
 
-【朝食のこだわりメニュー・和食】
-朝食の和食コーナーの一番人気は、那須御養卵を使用した「究極の卵かけごはん（TKG）」です。
-その他にも、国内産の美味しい白米、栃木県産のコシヒカリを使用した味わい深い成熟玄米、料理長特製の身体に優しい朝粥をご用意。
-ご飯のお供として、高菜漬け、きくらげ昆布、梅干、つぼ漬けなども充実しております。
 
-【朝食のこだわりメニュー・洋食とサラダ】
-洋食コーナーでは、毎朝焼き上げるサクサク香ばしい自家製クロワッサンや、ヨーロッパの高級クロワッサンである「ダイアモンドギッフェリ」が大人気。
-その他、胡麻ロールやミニコッペパン、定番 of スクランブルエッグなどもございます。
-サラダ・シリアルコーナーでは、新鮮な地元那須野原産の野菜やオーガニック野菜を使ったコールスロー、季節の葉物サラダ、ポテトサラダ、マカロニサラダ、ヘルシーな海藻サラダなどを日替わりで提供しております。
 
-【那須御養卵のラインナップ（白玉・赤玉・さくら）】
-那須ミッドシティホテルでは、70年の歴史を持つ地元の名店「稲見商店」のブランド卵「那須御養卵」を3種類ご用意しており、究極のTKG体験をお楽しみいただけます。
-1. 「白玉（White）」：よもぎ粉末や木酢酸、ファフィア酵母など20種類以上のオリジナル飼料で育ち、コクと甘みが強く生臭さが一切ないオリジナル卵です。赤玉と同じ最高品質でありながら、お求めやすい価格を実現しています。黄身や白身がぷっくりとしています。
-2. 「赤玉（Red）」：コクと甘みが非常に強く、お料理のプロや有名店、テレビ等でも広く絶賛されている最高峰のブランド卵です。職人がゆったりとした鶏舎環境で大切に育てています。
-3. 「さくら（Sakura）」：日本で唯一の純国産鶏「さくら」が産むさくら色の卵です。地元大田原産の唐辛子「栃木三鷹」やホタテ貝殻を飼料に配合し、殻が硬く鮮度が長持ちします。濃厚なコクとふわふわ起泡性が特徴で、卵料理が非常にふんわりと仕上がります。
-
-【TKGのトッピングと専用醤油】
-極上の卵かけごはん（TKG）をさらにお楽しみいただくため、卵かけごはん専用に厳選された特製醤油をご用意しております。
-また、お好みに合わせてカスタマイズできる4〜5種類のプレミアムトッピング（小ねぎ、かつお節、佃煮昆布、岩塩など）も無料でお選びいただけます。
-
-【夕食レストラン・オールヴォワール（営業時間・特徴）】
-1階レストラン「オールヴォワール」の夕食営業時間は「17:30〜21:00」です。
-出張でお越しのビジネスマンがお一人で気軽に立ち寄れる「ちょい飲み」から、週末のご家族団らんまで、那須の食材にこだわったホテル品質のディナーを親しみやすい価格でご提供します。
-
-【夕食メニュー・ちょい飲みとコース】
-1. 「ちょい飲みセット（1,500円）」：ビジネスマンの定番人気メニュー。生ビール（中）、ハイボール、レモンサワーからお好きなドリンク1杯と、厳選単品おつまみメニューからお好きな3品を選べる超お得なセットです。
-2. 「ステーキコースディナー」：とちぎ和牛のラウンドステーキ温野菜添えをメインに、オードブル盛り合わせ、本日のスープ、パスタ、グリーンサラダ、パン又はライス、デザート盛り合わせ、デミタスコーヒーが付いた豪華フルコースです。
-3. 「カジュアルディナーコース」：メイン料理を「目鯛のソテー ブールブランソース」または「那須高原豚のステーキ」からお選びいただける人気のコースです。アミューズ、本日のスープ、サラダ、パン又はライス、デザート、コーヒーが付きます。
-
-【夕食メニュー・栃木素材のグリルとキッズ】
-栃木の豊かな恵みを味わう特選グリルメニューには、全品にスープ、サラダ、ライスまたはパン、コーヒーが付きます。
-1. 「ハンバーグステーキ 200g（和風またはマスタード）」：栃木が誇る那須高原豚と国産牛を使用したジューシーな合挽きハンバーグです。
-2. 「那須高原豚ロースステーキ 130g（和風またはマスタード）」：きめ細やかで上品な甘みのある脂身が特徴の地元ブランド豚です。
-3. 「ヤシオマスのバターソテー 120g」：栃木県特産のプレミアムなニジマス「ヤシオマス」を香ばしいバターソテーに仕上げました。
-4. 「キッズプレート」：お子様向けに、煮込みハンバーグ、フライドポテト、チキンライス、目玉焼き、海老フライ（タルタルソース）、サラダ、ミニデザート、オレンジジュースをワンプレートにした豪華なセットです。
-
-【夕食メニュー・パスタ・ピザ・アラカルト】
-アラカルトやこだわりイタリアンも充実しています。
-- パスタ：旨味たっぷりの「ボロネーゼ」、新鮮なシーフード贅沢使用の「ペスカトーレ」、香ばしい「ペペロンチーノ」
-- ピッツァ：定番の「ミックスピザ」、4種のチーズが濃厚な「ピッツァ・クアトロ」、香ばしい「ガーリックトースト」
-- カレー・丼・茶漬け：彩り豊かな「野菜カレー」、ブランド牛「栃木和牛」を贅沢に使用した「栃木和牛スタミナ丼」、ボリューム満点な「スタ丼（豚バラ肉）」、お食事の締めに最適なトロトロ和牛スジの「栃木和牛すじ茶漬け」
-
-【客室設備・ベッドと防音窓】
-当ホテルは、ビジネスやご家族の「翌日のための確かな休息」をお届けするため、快適性を追求しております。
-- 全室に世界が認める極上の寝心地の「シモンズベッド」を採用。
-- 各客室でご自身のお好みに合わせて温度調節が可能な「個別空調」を完備。
-- 窓には開閉可能でありながら防音性・快適性を確保した「防音ペアガラス（ダブルサッシ）」を採用しており、外の音を気にせず静かにお休みいただけます。
-
-【ビジネス向けサービスと設備】
-ビジネス出張の快適なワーク環境を力強くサポートします。
-- 客室デスクは「幅2m以上」と非常に大きく、デスクライトやコンセント完備でPC仕事が快適です。
-- 全客室で高速「有線LAN」および「WiFi」が無料でご利用いただけます（ロビーは無線LAN）。
-- ズボンプレッサー、消臭スプレー、コインランドリー（洗濯機・乾燥機）も完備しており、長期出張にも最適です。コピー・FAXはフロントにて有料で承ります。
-
-【お子様の添い寝無料のルール】
-小学生以下のお子様が保護者と同じベッドで添い寝される場合、ご宿泊料金は「完全無料」です。ファミリーにとても嬉しいサービスです。
-- 添い寝のお子様のアメニティ（タオル、ナイトウェア、スリッパ等）は付属しませんのでご持参ください（有料でのレンタルもございます）。
-- 4歳〜小学生の添い寝のお子様は、朝食バイキング代として別途650円を頂戴いたします。
-- デラックスツインルームを除き、お部屋へのエキストラベッドの追加はできません。
-
-【ホテルへのアクセスとタクシー】
-当ホテルは、那須塩原駅西口から「徒歩3分」という抜群のロケーションに位置し、無料駐車場も完備しております。
-お車以外（電車等）でお越しの場合、那須塩原駅西口のタクシー乗り場（徒歩1〜2分）に常時タクシーが待機しております。
-- 黒磯観光タクシー：0287-62-1526（フリーダイヤル 0120-818-391）
-- ファーストタクシーグループ塩原自動車：0287-63-0444
-バスをご利用の場合は、那須高原方面は関東自動車バス（那須ロープウェイ行き等）、塩原温泉方面はJRバスをご利用いただけます。
-
-【レンタカー各社のご案内（駅前）】
-那須塩原駅西口すぐの場所に、レンタカー各社がございます。観光や温泉巡りの機動力に大変便利です。
-- トヨタレンタカー 那須塩原駅前店：0287-65-3100
-- ニッポンレンタカー 那須塩原駅前営業所：050-1712-2823
-- 日産レンタカー 那須塩原駅前店：0287-67-1523
-- JR駅レンタカー 那須塩原営業所：0287-65-1680
-- ワンズレンタカー 那須塩原駅前店：0287-73-8255
-- オリックスレンタカー 那須塩原駅前店：0287-67-1543
-- 那須高原レンタカー：0287-73-5710
-
-【Aカードキャッシュバックシステム（概要とメリット）】
-Aカードは、全国470以上のホテルで使える「入会金・年会費・再発行手数料が完全無料」の非常にお得なポイントカードです。
-ご宿泊の際、通常プランでは室料（税抜）の10%以上の高還元ポイントが貯まり、フロントでその場で「現金」でキャッシュバックを受け取ることができます。当ホテルでは特別に「Aカードポイント20%プラン」もご用意しており、出張やご旅行に大変おすすめです。カード提示で住所記入が不要になるイージーチェックインも可能です。
-
-【Aカードのポイントとキャッシュバック還元率】
-貯まったポイントの現金キャッシュバック基準は以下の通りで、多く貯めるほど還元率がアップしてお得になります。
-- 5,500ポイント達成で → 「5,000円」を現金キャッシュバック
-- 10,500ポイント達成で → 「10,000円」を現金キャッシュバック
-- 20,500ポイント達成で → 「20,000円」を現金キャッシュバック
-ポイントの有効期限は最終利用日から1年半ですが、期限内に全国の提携ホテルで再度ご利用いただくと自動的に全ポイントが1年半延長されます。キャッシュバックは全国のどのAカード加盟ホテルでも受け取れます。
-
-【Aカードの無料入会方法】
-Aカードは以下の3つの方法で今すぐ完全無料でご入会いただけます。
-1. ホテルフロントで入会：チェックイン時にスタッフへ「Aカードに入会したい」とお伝えいただければ、その場で即座にカードを発行し当日のご宿泊からポイントを付与します。
-2. WEBから入会：Aカード公式サイトからお申し込みいただくと、新規入会特典として「500ポイント」がプレゼントされます。
-3. アプリから入会：スマートフォンでAカードアプリをダウンロードして登録すれば、カードレスですぐにご利用でき、こちらも「500ポイント」がプレゼントされます。
-
-【日帰り温泉：大鷹の湯（五ツ星源泉）】
-当ホテルから車で約10分（タクシーで約15分）の場所にある「大鷹の湯」は、全国でも希少な最高ランクの「五ツ星源泉」を100%源泉かけ流しで楽しめる極上の日帰り温泉です。
-- 営業時間：昼の部 10:00〜14:00（最終受付13:00）、夜の部 18:00〜21:00（最終受付20:00）※夜は事前にご確認ください。
-- 料金：大人1,000円、小学生600円、幼児200円。個室貸切露天風呂（45分5,000円/2名〜）もございます。
-- 泉質：ナトリウム-塩化物・炭酸水素塩温泉（モール泉）。茶褐色（ウーロン茶色）のとろみのあるお湯で、まるで美容液のような素晴らしい肌触りです。
-- 電話：0287-36-6802、住所：那須塩原市井口548-350。
-
-【日帰り温泉：千本松温泉（夜遅く・ICそば）】
-西那須野塩原ICのすぐそば、千本松牧場内にある「千本松温泉」は、お仕事終わりや観光の帰りにも立ち寄りやすい大人気の日帰り温泉です。
-- 営業時間：13:00〜23:00（最終受付22:30）。定休日はございません。夜23時まで営業しているため大変便利です。
-- 料金：平日大人700円、小学生250円 / 土日祝大人800円、小学生300円。未就学児は無料です。
-- 泉質：アルカリ性単純温泉（天然モール泉）。植物由来の滑らかなアルカリ性天然モール泉で、優れた美肌効果があります。
-- 電話：0287-36-1025、住所：那須塩原市千本松799。
-
-【日帰り温泉：那須塩原駅前温泉（最も近い最新温泉）】
-当ホテルから「車でわずか5分（約2.3km）」、または徒歩26分という最も近い場所にある「那須塩原駅前温泉」は、2020年にオープンした非常に清潔で新しい日帰り温泉施設です。
-- 営業時間：13:00〜21:00（最終受付20:00）。定休日は毎週第3火曜日です。
-- 料金：大人1,000円、子供500円。
-- 泉質：エメラルドグリーンの美しい温泉を100%源泉かけ流しでご提供しています。内湯、開放的な露天風呂、本格サウナ、水風呂を完備しており、最も手軽にリフレッシュできるおすすめのスポットです。
-- 電話：0287-65-1126、住所：那須塩原市唐杉曽根林41。
-
-【日帰り温泉：みかえりの郷 彩花の湯】
-もみじ谷大吊橋のすぐ近くにある「みかえりの郷 彩花の湯」は、絶景を望む素晴らしい露天風呂が魅力の温泉です。
-- 営業時間：10:00〜21:00（最終受付20:30）。定休日は第3水曜日です。
-- 料金：大人700円、小人400円。
-- 泉質：pH8.8の弱アルカリ性ナトリウム-塩化物温泉。広大な山々を見渡せる大パノラマ露天風呂とサウナを完備しており、観光の帰りに立ち寄るのに最適です。
-- 電話：0287-34-1126、住所：那須塩原市関谷1425-211。
-
-【日帰り温泉：名湯・鹿の湯と小鹿の湯（コスパ・歴史）】
-那須温泉発祥の地であり、1300年の歴史を誇る名湯をリーズナブルに楽しめます。
-- 「鹿の湯」：車で約35分。営業時間8:00〜18:00。料金は大人500円、小学生300円。独特の強い硫黄の香りと、美しい乳白色の濁り湯が特徴の超名湯です。
-- 「小鹿 of the Hot Springs（小鹿の湯）」：車で約35分。営業時間9:00〜21:00。料金は大人500円、小人300円。鹿の湯と全く同じ素晴らしい名湯源泉を引きながら、夜21時まで営業しており、比較的混雑を避けてゆったり入れる穴場スポットです。
-
-【日帰り温泉：大丸温泉旅館と北温泉旅館（秘湯とロケ地）】
-那須高原のさらに奥深くに位置する本格的な秘湯です。
-- 「大丸温泉旅館（川の湯）」：車で約40分。日帰り入浴は11:30〜15:00（最終受付14:30）。料金は大人1,000円、小学生700円。標高1300mにあり、温泉が川そのものとなって流れるダイナミックな巨大天然露天風呂「川の湯」が有名です。
-- 「北温泉旅館（テルマエ・ロマエ）」：車で約50分。営業時間8:30〜17:30。料金は大人700円、小人400円。映画「テルマエ・ロマエ」のロケ地としても有名な、江戸時代の面影を色濃く残すレトロで風情ある「天狗の湯」が魅力です。
-
-【日帰り温泉：その他の個性派温泉（塩原あかつきの湯・足湯・源泉館）】
-- 「塩原あかつきの湯」：車で約40分。10:00〜22:00。平日800円 / 土日祝1,000円。pH9.2という超高アルカリ性で抜群の美肌効果があり、水着着用の歩行プールやサウナも完備でファミリーにおすすめです。
-- 「湯っ歩の里」：車で約45分。9:00〜18:00。大人300円。塩原温泉街にある日本最大級の巨大な回廊型足湯施設です。
-- 「源泉館」：車で約50分。8:00〜18:00。大人800円。日によってお湯の色が白、緑、黒などに変化する神秘的な高濃度濁り湯を体験できる本格秘湯です。
-`;
-
-// ==========================================
-// VOICEVOX & TTS音声テキスト正規化
-// VOICEVOXがエラーで落ちる半角記号、カンマ、コロン、英数字などを排除する
-// ==========================================
 function optimizeTextForSpeech(text, isEnglish = false) {
   if (!text) return '';
   if (isEnglish) return text.replace(/:/g, ' ');
 
   let optimized = text;
+  // 1. Specific phrases/words (case-insensitive for half-width alphabets)
+  optimized = optimized.replace(/TKG/gi, 'たまごかけごはん');
+  optimized = optimized.replace(/Wi-Fi/gi, 'ワイファイ');
+  optimized = optimized.replace(/wifi/gi, 'ワイファイ');
+  optimized = optimized.replace(/LAN/gi, 'ラン');
+  optimized = optimized.replace(/Aカード/gi, 'えーかーど');
+  optimized = optimized.replace(/那須御養卵/g, 'なすごようらん');
+  optimized = optimized.replace(/大鷹の湯/g, 'おおたかのゆ');
+  optimized = optimized.replace(/内線9番/g, 'ないせん きゅうばん');
   
-  // コロン時間の日本語化 (例: 6:45 -> 六時四十五分, 9:30 -> 九時半)
+  // 2. Numbers, times and rates
   optimized = optimized.replace(/6:30/g, '六時半');
   optimized = optimized.replace(/6:45/g, '六時四十五分');
   optimized = optimized.replace(/9:00/g, '九時');
   optimized = optimized.replace(/9:30/g, '九時半');
   optimized = optimized.replace(/15:00/g, '十五時');
   optimized = optimized.replace(/11:00/g, '十一時');
-  optimized = optimized.replace(/1階/g, 'いっかい');
-  optimized = optimized.replace(/2階/g, 'にかい');
-  optimized = optimized.replace(/1,000円/g, '千円');
+  optimized = optimized.replace(/17:30/g, '十七時半');
+  optimized = optimized.replace(/21:00/g, '二十一時');
   
-  // 円マークやカンマの除去・置換
-  optimized = optimized.replace(/¥/g, '');
-  optimized = optimized.replace(/,/g, '');
+  // 3. Ranges and symbols
+  optimized = optimized.replace(/〜/g, 'から');
   optimized = optimized.replace(/・/g, '、');
   
-  // 時間コロンの通常の変換
-  optimized = optimized.replace(/(\d+):(\d+)/g, '$1時$2分');
+  // 4. Prices and currency symbols
+  optimized = optimized.replace(/¥1,500/g, '千五百円');
+  optimized = optimized.replace(/1,500円/g, '千五百円');
+  optimized = optimized.replace(/1,000円/g, '千円');
+  optimized = optimized.replace(/650円/g, '六百五十円');
+  optimized = optimized.replace(/¥/g, '');
+  optimized = optimized.replace(/,/g, '');
   
-  // 特殊記号の削除・置換
-  optimized = optimized.replace(/[【】]/g, '、');
-  optimized = optimized.replace(/[◆◇■□▲▼]/g, '、');
-  optimized = optimized.replace(/[\(\)（）]/g, '、');
-  optimized = optimized.replace(/[➔➔➔➔➔➔➔➔➔➔➔➔➔➔➔➔]/g, '、');
-  optimized = optimized.replace(/🍆/g, ''); // 茄子マークは読み上げでは除去
+  // 5. Percentages
+  optimized = optimized.replace(/10%/g, '十パーセント');
   
-  // 絵文字の完全除去
+  // 6. Floor numbers
+  optimized = optimized.replace(/1階/g, 'いっかい');
+  optimized = optimized.replace(/2階/g, 'にかい');
+  
+  // 7. Time/duration/counts
+  optimized = optimized.replace(/24時間/g, 'にじゅうよじかん');
+  optimized = optimized.replace(/3分/g, 'さんぷん');
+  optimized = optimized.replace(/1台/g, 'いちだい');
+  
+  // 8. Phone number & address hyphens
+  optimized = optimized.replace(/0287-67-1400/g, 'れい にー はち なな、ろく なな、いち よん ぜろ ぜろ');
+  optimized = optimized.replace(/1-1-10/g, 'いち の いち の じゅう');
+  
+  // 9. General cleanup of emojis and brackets
+  optimized = optimized.replace(/[【】「」()（）]/g, '');
+  optimized = optimized.replace(/🍆/g, '');
   optimized = optimized.replace(/[🌸💎❄️🎀👑🌼⭐🌟✨🦊💡🍀🎵👀👩👨🏨📞📱]/g, '');
   optimized = optimized.replace(/[\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF]/g, '');
 
-  // 英単語のカタカナ置換（音声エンジン対策）
-  optimized = optimized.replace(/TKG/gi, 'たまごかけごはん');
-  optimized = optimized.replace(/WiFi/gi, 'ワイファイ');
-  optimized = optimized.replace(/Wi-Fi/gi, 'ワイファイ');
-  optimized = optimized.replace(/LAN/gi, 'ラン');
-  optimized = optimized.replace(/PC/gi, 'パソコン');
-  optimized = optimized.replace(/FAX/gi, 'ファックス');
-  optimized = optimized.replace(/Aカード/gi, 'エーカード');
-  optimized = optimized.replace(/APP Store/gi, 'アップストア');
-  optimized = optimized.replace(/Google Play/gi, 'グーグルプレイ');
-  optimized = optimized.replace(/WEB/gi, 'ウェブ');
-  optimized = optimized.replace(/FAQ/gi, 'エフエーキュー');
-  optimized = optimized.replace(/Q&A/gi, 'キューアンドエー');
-  
-  // 連続する読点をまとめる
-  optimized = optimized.replace(/、+/g, '、');
-  
   return optimized;
 }
 
-// ==========================================
-// 超精密ダイレクトQ&Aテーブル（ハルシネーション完全排除）
-// ==========================================
-const DIRECT_QA_MAP = [
-  {
-    match: (q) => (q.includes('朝食') || q.includes('ちょうしょく')) && (q.includes('時間') || q.includes('何時') || q.includes('営業')),
-    answer: "朝食の営業時間は、毎朝の6:45から9:30まで（ラストオーダー 9:15）となっております。1階レストラン「オールヴォワール」にてご提供しております。ご宿泊のお客様は全員無料でバイキングをお楽しみいただけます🍆"
-  },
-  {
-    match: (q) => (q.includes('朝食') || q.includes('バイキング')) && (q.includes('メニュー') || q.includes('おかず') || q.includes('パン') || q.includes('和食') || q.includes('洋食') || q.includes('内容')),
-    answer: "無料朝食バイキングでは、地元稲見商店の那須御養卵を使用した「究極の卵かけご飯（TKG）」のほか、白米、栃木県産コシヒカリの成熟玄米、特製朝粥をご用意。洋食派の方には、毎朝焼き立ての自家製クロワッサンや高級クロワッサン「ダイアモンドギッフェリ」、胡麻ロール、スクランブルエッグや日替わりの新鮮地元野菜サラダ等をご用意しております🍆"
-  },
-  {
-    match: (q) => q.includes('卵') || q.includes('たまご') || q.includes('tkg') || q.includes('御養卵'),
-    answer: "当ホテルのTKG（卵かけご飯）では、地元・稲見商店のブランド卵「那須御養卵」を3種類ご用意しております！\n1. 「白玉」：生臭さがなくコクと甘みが強い定番卵。\n2. 「赤玉」：プロ絶賛の味が濃厚な最高峰ブランド卵。\n3. 「さくら」：純国産鶏が産む、カプサイシン配合飼料で育った濃厚でふわふわになる卵。\nこれらに特製醤油と4〜5種類のプレミアムトッピング（小ねぎ、かつお節、佃煮昆布、岩塩等）を合わせて、究極 of TKGをお楽しみいただけます🍆"
-  },
-  {
-    match: (q) => q.includes('夕食') || q.includes('ディナー') || q.includes('レストラン') || q.includes('夜ご飯') || q.includes('晩御飯') || q.includes('オールヴォワール'),
-    answer: "1階レストラン「オールヴォワール」の夕食営業時間は「17:30〜21:00」です。大人気の「ちょい飲みセット（1,500円・ドリンク1杯＋おつまみ3品）」や、豪華な「とちぎ和牛ステーキコース」、お手頃な「カジュアルディナーコース（目鯛ソテーまたは那須高原豚ステーキ）」、ジューシーな「ハンバーグステーキ」やパスタ、ピザ、栃木和牛スタミナ丼など豊富にご用意しております🍆"
-  },
-  {
-    match: (q) => q.includes('温泉') || q.includes('風呂') || q.includes('日帰り'),
-    answer: "当ホテルから行けるおすすめの日帰り温泉をご案内します！\n1. 「那須塩原駅前温泉」：車でわずか5分（最も近い）。エメラルドグリーンの100%源泉かけ流しで、サウナや露天風呂も完備。13:00〜21:00営業（第3火曜定休、大人1,000円）。\n2. 「大鷹の湯」：車で10分。五ツ星源泉100%の美容液のような極上モール泉。10:00〜14:00/18:00〜21:00営業（大人1,000円）。\n3. 「千本松温泉」：車で15分。アルカリ性美肌のモール泉。夜23:00まで営業しており遅い時間の利用に最適（無休、大人平日700円/土日祝800円）。\n4. 「鹿の湯」：車で35分。1300年の歴史を持つ乳白色硫黄泉の名湯（大人500円）🍆"
-  },
-  {
-    match: (q) => q.includes('大鷹') || q.includes('おおたか'),
-    answer: "「五ツ星源泉 大鷹の湯」は車で約10分です。全国でも希少な最高ランクの五ツ星源泉を100%かけ流しで楽しめます。お湯は茶褐色でとろみがあり、まるで美容液のようにお肌がすべすべになります。営業時間は10:00〜14:00、18:00〜21:00で、料金は大人1,000円、小学生600円です。日帰り個室貸切露天風呂（45分5,000円）も利用可能です🍆"
-  },
-  {
-    match: (q) => q.includes('千本松') || q.includes('せんぼんまつ'),
-    answer: "「千本松温泉」は車で約15分、西那須野塩原ICのすぐそばの千本松牧場内にあります。夜23:00まで営業（最終受付22:30、年中無休）しているため、遅い時間の温泉利用に最も便利です。お湯は植物由来の滑らかなアルカリ性天然モール泉で、抜群 of 美肌効果があります。料金は平日大人700円、土日祝大人800円（小学生は平日250円、土日祝300円、未就学児無料）です🍆"
-  },
-  {
-    match: (q) => q.includes('駅前温泉') || q.includes('いちばん近い') || q.includes('一番近い') || q.includes('最も近い'),
-    answer: "当ホテルから一番近い温泉は、車でわずか5分（約2.3km、徒歩26分）の「那須塩原駅前温泉」です！2020年オープンの新しく清潔な施設で、美しいエメラルドグリーンの100%源泉かけ流し湯です。露天風呂、内湯、本格サウナと水風呂を完備。営業時間は13:00〜21:00（最終受付20:00）、毎週第3火曜日が定休で、料金は大人1,000円、子供500円です🍆"
-  },
-  {
-    match: (q) => q.includes('添い寝') || q.includes('添寝') || q.includes('子供') || q.includes('子ども') || q.includes('小学生'),
-    answer: "小学生以下のお子様が保護者の方と同じベッドで添い寝される場合、ご宿泊料金は「完全無料」です！ただし、添い寝のお子様分のタオルやパジャマ、アメニティ類は付属しませんのでご持参ください（有料レンタルもございます）。また、4歳〜小学生の添い寝のお子様は朝食バイキング代として別途650円を頂戴いたします。エキストラベッドの追加はデラックスツインを除き不可となります🍆"
-  },
-  {
-    match: (q) => q.includes('aカード') || q.includes('エーカード') || q.includes('キャッシュバック') || q.includes('ポイント'),
-    answer: "「Aカード」は入会費・年会費完全無料のポイントカードです！ご宿泊料金（税抜）の10%以上がポイントとして貯まり、貯まったポイントはフロントでその場で「現金」でキャッシュバックできます。当ホテルでは特別にポイント20%付与プランもご用意しております！\n【キャッシュバック基準】\n- 5,500P貯まると → 現金 5,000円\n- 10,500P貯まると → 現金 10,000円\n- 20,500P貯まると → 現金 20,000円\nフロント、WEB、またはAカードアプリからその場で無料入会でき、WEB/アプリ入会なら新規500Pプレゼントされます🍆"
-  },
-  {
-    match: (q) => q.includes('アクセス') || q.includes('行き方') || q.includes('場所') || q.includes('駅') || q.includes('徒歩'),
-    answer: "当ホテルは、JR那須塩原駅の「西口から徒歩3分」という抜群の好立地です！新幹線改札から西口を出てすぐの場所にございます（東京駅から新幹線で約70分）。お車でお越しのお客様のために、広大で便利な「無料駐車場」も完備しておりますので、那須高原や温泉巡りの拠点として大変便利です🍆"
-  },
-  {
-    match: (q) => q.includes('レンタカー') || q.includes('タクシー') || q.includes('車がない') || q.includes('車以外'),
-    answer: "那須塩原駅西口すぐ（徒歩1〜2分）にタクシー乗り場があり、常時数台待機しております。タクシー会社は黒磯観光タクシー（0287-62-1526）や塩原自動車（0287-63-0444）がございます。\nまた、駅西口にはレンタカー各社が揃っており、トヨタ（0287-65-3100）、ニッポン（050-1712-2823）、日産（0287-67-1523）、JR駅（0287-65-1680）、ワンズ（0287-73-8255）、オリックス（0287-67-1543）、那須高原（0287-73-5710）がご利用いただけます🍆"
-  },
-  {
-    match: (q) => q.includes('駐車場') || q.includes('パーキング') || q.includes('車停'),
-    answer: "当ホテルには、ご宿泊のお客様が「完全無料」でご利用いただける広大な駐車場を完備しております！ご予約不要で普通車を何台でもお停めいただけますので、お車での観光出張、また当ホテルを拠点とした那須や塩原・板室の温泉巡りにも大変便利です🍆"
-  },
-  {
-    match: (q) => q.includes('ベッド') || q.includes('シモンズ') || q.includes('客室') || q.includes('防音') || q.includes('エアコン'),
-    answer: "客室のベッドは、寝心地の良さを極限まで追求した世界ブランドの「シモンズベッド」を全室に採用しております！また、お好みの温度に調節可能な「個別空調」を完備し、窓は開閉可能な「防音ペアガラス（ダブルサッシ）」を採用しており、防音性と静粛性をバッチリ確保していますので、翌日に向けてぐっすりとお休みいただけます🍆"
-  },
-  {
-    match: (q) => q.includes('ビジネス') || q.includes('デスク') || q.includes('wifi') || q.includes('有線') || q.includes('出張'),
-    answer: "当ホテルはビジネス出張にも最適です！全客室に「幅2m以上」のワイドデスクを設置しており、デスクライトやコンセントも完備でPCワークが非常に快適に行えます。全室で高速「有線LAN」と「Wi-Fi」が無料でご利用いただけます。その他、ズボンプレッサーや消臭スプレー、コインランドリー（洗濯機・乾燥機）も完備しております🍆"
-  }
-];
-
-// 完全ローカルRAGフォールバックマッチング
-function localChromaRAGRaw(query) {
-  const sections = SYSTEM_PROMPT.split('【').slice(1);
-  let bestSection = '';
-  let maxScore = -1;
-
-  const q = query.toLowerCase();
-  
-  for (const section of sections) {
-    const lines = section.split('\n');
-    const header = lines[0].replace('】', '').trim().toLowerCase();
-    const content = section.toLowerCase();
-    
-    let score = 0;
-    
-    // ヘッダーマッチ（優先スコア）
-    if (q.includes('朝食') && header.includes('朝食')) score += 10;
-    if (q.includes('時間') && header.includes('営業時間')) score += 8;
-    if (q.includes('夕食') && header.includes('夕食')) score += 10;
-    if (q.includes('ご飯') && header.includes('朝食')) score += 5;
-    if (q.includes('ごはん') && header.includes('朝食')) score += 5;
-    if (q.includes('tkg') && header.includes('tkg')) score += 15;
-    if (q.includes('卵') && header.includes('卵')) score += 10;
-    if (q.includes('温泉') && header.includes('温泉')) score += 10;
-    if (q.includes('大鷹') && header.includes('大鷹')) score += 15;
-    if (q.includes('千本松') && header.includes('千本松')) score += 15;
-    if (q.includes('駅前温泉') && header.includes('駅前温泉')) score += 15;
-    if (q.includes('アクセス') && header.includes('アクセス')) score += 10;
-    if (q.includes('レンタカー') && header.includes('レンタカー')) score += 12;
-    if (q.includes('タクシー') && header.includes('タクシー')) score += 12;
-    if (q.includes('aカード') && header.includes('aカード')) score += 15;
-    if (q.includes('添い寝') && header.includes('添い寝')) score += 15;
-    if (q.includes('ビジネス') && header.includes('ビジネス')) score += 10;
-    if (q.includes('ベッド') && header.includes('客室')) score += 8;
-    if (q.includes('シモンズ') && header.includes('客室')) score += 10;
-
-    // 単語キーワードマッチ
-    const keywords = q.split(/[\s,，.．、。？?！!]+/);
-    for (const kw of keywords) {
-      if (kw.length >= 2) {
-        if (header.includes(kw)) score += 5;
-        if (content.includes(kw)) score += 1;
-      }
+// VOICEVOX v1 API から高速に音声バイナリを直接取得する関数 (JSONレスポンスのURLから取得)
+async function getVoicevoxAudioV1(text, speaker, apiKey) {
+  const url = "https://api.tts.quest/v1/voicevox/?key=" + apiKey + "&text=" + encodeURIComponent(text) + "&speaker=" + speaker;
+  const buffer = await httpGet(url);
+  if (buffer.length > 0 && buffer[0] === 0x7B) {
+    const json = JSON.parse(buffer.toString('utf-8'));
+    if (json.error || json.errorMessage) {
+      throw new Error(json.error || json.errorMessage);
     }
-
-    if (score > maxScore && score > 0) {
-      maxScore = score;
-      bestSection = section;
+    
+    // ストリーミングURLを優先的に直接返却する（ポーリング待機を完全排除）
+    const audioUrl = json.mp3StreamingUrl || json.mp3DownloadUrl || json.wavDownloadUrl;
+    if (!audioUrl) {
+      throw new Error("No download or streaming URL found in VOICEVOX response");
     }
+    return audioUrl;
   }
-
-  return bestSection ? `【${bestSection.trim()}` : '';
+  return buffer.toString('base64');
 }
 
-function formatRagResponse(sectionText) {
-  if (!sectionText) {
-    return "ご質問ありがとうございます！那須ミッドシティホテルについて、朝食バイキング（6:45〜9:30、那須御養卵TKGなど）、夕食ディナー（オールヴォワール 17:30〜21:00）、日帰り温泉、Aカードキャッシュバック、駅近アクセス、添い寝無料など、何でもお気軽にお尋ねくださいね🍆";
-  }
-
-  const lines = sectionText.split('\n');
-  const title = lines[0].replace(/【|】/g, '').trim();
-  const bodyLines = lines.slice(1).map(l => l.trim()).filter(l => l.length > 0);
-
-  let responseText = `お調べした「${title}」についての情報です🍆\n\n`;
-  for (const line of bodyLines) {
-    responseText += `${line}\n`;
-  }
-  return responseText;
+export async function OPTIONS() {
+  return NextResponse.json({}, { headers: corsHeaders });
 }
 
-// ==========================================
-// VOICEVOX 音声合成 (tts.quest v3 API) - ポーリング＆Base64堅牢返却
-// ==========================================
-async function getVoicevoxAudioV3(text, speaker, apiKey = '') {
-  try {
-    const optimizedText = optimizeTextForSpeech(text);
-    if (!optimizedText) return null;
-    
-    console.log(`[Voicevox V3 API] Synthesizing: "${optimizedText}" (Speaker: ${speaker})`);
-    
-    const url = `https://api.tts.quest/v3/voicevox/synthesis?key=${apiKey}&text=${encodeURIComponent(optimizedText)}&speaker=${speaker}`;
-    
-    const headers = {
-      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-    };
-
-    // 1. 生成開始リクエスト
-    const res = await fetch(url, { headers });
-    if (!res.ok) {
-      throw new Error(`tts.quest V3 synthesis init failed with status ${res.status}`);
-    }
-
-    const json = await res.json();
-    if (!json.success) {
-      throw new Error(`tts.quest V3 API success is false: ${json.errorMessage || 'Unknown error'}`);
-    }
-
-    const mp3Url = json.mp3DownloadUrl || json.mp3Url;
-    const statusUrl = json.audioStatusUrl;
-
-    if (!mp3Url || !statusUrl) {
-      throw new Error(`Invalid V3 API response: missing mp3DownloadUrl or audioStatusUrl. Keys received: ${Object.keys(json).join(', ')}`);
-    }
-
-    console.log(`[Voicevox V3 API] Init successful. Polling audioStatusUrl...`);
-
-    // 2. 生成完了まで最大15秒間ポーリング
-    for (let i = 0; i < 15; i++) {
-      await new Promise(r => setTimeout(r, 1000));
-      
-      const statRes = await fetch(statusUrl, { headers });
-      if (!statRes.ok) continue;
-
-      const statJson = await statRes.json();
-      if (statJson.isAudioReady) {
-        console.log(`[Voicevox V3 API] Audio is ready! Downloading from: ${mp3Url}`);
-        
-        // 3. 準備完了したら mp3Url からバイナリをダウンロード
-        const audioRes = await fetch(mp3Url, { headers });
-        if (!audioRes.ok) {
-          throw new Error(`Failed to download audio binary from ${mp3Url}`);
-        }
-
-        const arrayBuffer = await audioRes.arrayBuffer();
-        return Buffer.from(arrayBuffer).toString('base64');
-      }
-      
-      if (statJson.isAudioError) {
-        throw new Error("VOICEVOX synthesis processing error");
-      }
-    }
-    
-    throw new Error("VOICEVOX V3 synthesis timeout after 15 seconds");
-  } catch (err) {
-    console.error("[Voicevox V3 Error]", err);
-    throw err;
-  }
-}
-
-// ==========================================
-// POST ハンドラ
-// ==========================================
 export async function POST(req) {
   try {
-    const { text, voice, ttsOnly } = await req.json();
-    const query = (text || '').trim();
+    const body = await req.json();
+    const { text = '', voice = 'ja-JP-Chirp3-HD-Aoede', ttsOnly = false, textOnly = false } = body;
 
-    // ボイスモデルマッピング（フロントの Chirp ボイスを VOICEVOX の話者IDに完璧に変換）
-    // デフォルト：四国めたん (2), aoi/achernar: 春日部つむぎ (8), mei/zephyr: 雨晴はう (10)
-    let voicevoxSpeaker = 2;
-    const vLower = (voice || '').toLowerCase();
-    if (vLower.includes('achernar') || vLower.includes('aoi')) {
-      voicevoxSpeaker = 8;
-    } else if (vLower.includes('zephyr') || vLower.includes('mei')) {
-      voicevoxSpeaker = 10;
+    if (!text) {
+      return NextResponse.json({ error: 'Text required' }, { status: 400, headers: corsHeaders });
     }
 
-    // APIキーの読み込み（デフォルトフォールバックを明示的にセット）
-    const VOICEVOX_API_KEY = (process.env.VOICEVOX_API_KEY || 'j-81N719n201661').trim();
+    let answerText = "";
+    let isPreciseMatch = false;
 
-    // 1. 音声合成のみのリクエスト（文節ストリーミング再生用）
     if (ttsOnly) {
-      try {
-        const audioBase64 = await getVoicevoxAudioV3(query, voicevoxSpeaker, VOICEVOX_API_KEY);
-        return NextResponse.json({ audio: audioBase64 });
-      } catch (err) {
-        return NextResponse.json({ audio: null, error: err.message, stack: err.stack }, { status: 500 });
+      answerText = text;
+      isPreciseMatch = true;
+    } else {
+      const q = text.toLowerCase().trim();
+
+      // ==========================================
+      // RAG（ホテルナレッジ）に基づくローカル判定のみを実行（推測・嘘の排除）
+      // ==========================================
+      
+      // 0. 挨拶
+      if (q.includes('こんにちは') || q.includes('こんばんは') || q.includes('おはよう') || q.includes('はじめまして') || q.includes('ハロー') || q === 'やあ' || q === 'どうも' || q.includes('もりなす')) {
+        answerText = "こんにちは！那須ミッドシティホテル公式マスコット「もりなすちゃん」です🍆 どんなことでもお気軽にお尋ねくださいね。";
+        isPreciseMatch = true;
+      }
+      // 1. コインランドリー
+      else if (q.includes('コインランドリー') || q.includes('ランドリー') || q.includes('洗濯') || q.includes('乾燥機') || q.includes('laundry') || q.includes('washing')) {
+        answerText = "当ホテルの1階コインランドリーエリアに、有料のドラム式洗濯乾燥機がございます！24時間いつでもご利用いただけます。";
+        isPreciseMatch = true;
+      }
+      // 2. 自販機・製氷機・電子レンジ
+      else if (q.includes('自販機') || q.includes('自動販売機') || q.includes('製氷機') || q.includes('氷') || q.includes('電子レンジ') || q.includes('レンジ') || q.includes('温め') || q.includes('vending') || q.includes('microwave') || q.includes('ice')) {
+        answerText = "1階のコインランドリーエリアに、ソフトドリンク自販機、無料で使える自動製氷機、および電子レンジ（1台）を設置しております！ご自由にご利用ください。";
+        isPreciseMatch = true;
+      }
+      // 3. 喫煙所
+      else if (q.includes('喫煙') || q.includes('たばこ') || q.includes('タバコ') || q.includes('吸う') || q.includes('smoking') || q.includes('喫煙所') || q.includes('喫煙室')) {
+        answerText = "当ホテルは全室禁煙となっておりますが、1階のコインランドリーエリアに新設された専用の喫煙所をご利用いただけます。";
+        isPreciseMatch = true;
+      }
+      // 4. 朝食（時間・メニューなど）
+      else if (q.includes('朝食') || q.includes('バイキング') || q.includes('ごはん') || q.includes('朝ごはん') || q.includes('卵かけ') || q.includes('tkg') || q.includes('breakfast')) {
+        answerText = "朝食バイキングは6:45〜9:30に1階レストラン「オールヴォワール」にて【宿泊者全員無料】で提供しております！那須御養卵TKGが大変人気です。";
+        isPreciseMatch = true;
+      }
+      // 5. 夕食
+      else if (q.includes('夕食') || q.includes('ディナー') || q.includes('レストラン') || q.includes('ちょい飲み') || q.includes('コース') || q.includes('ディナーコース') || q.includes('dinner')) {
+        answerText = "夕食は1階レストラン「オールヴォワール」にて17:30〜21:00まで営業しております。那須高原豚ステーキやちょい飲みセット（¥1,500）がございます。";
+        isPreciseMatch = true;
+      }
+      // 6. 温泉・おおたかの湯
+      else if (q.includes('温泉') || q.includes('おおたか') || q.includes('大鷹') || q.includes('千本松') || q.includes('駅前温泉') || q.includes('日帰り温泉') || q.includes('onsen')) {
+        answerText = "当館に大浴場はございませんが、車で10分ほどの極上温泉『大鷹（おおたか）の湯』が大変おすすめです！とろみあるウーロン茶色の極上モール泉をお楽しみいただけます。";
+        isPreciseMatch = true;
+      }
+      // 7. Aカード・キャッシュバック
+      else if (q.includes('aカード') || q.includes('エーカード') || q.includes('キャッシュバック') || q.includes('ポイント') || q.includes('acard') || q.includes('cashback')) {
+        answerText = "Aカードは年会費無料で、宿泊料金の10%以上がポイント還元され、貯まったポイントはフロントで現金キャッシュバックできる非常にお得なカードです！";
+        isPreciseMatch = true;
+      }
+      // 8. 添い寝
+      else if (q.includes('添い寝') || q.includes('添寝') || q.includes('子供') || q.includes('子ども') || q.includes('小学生') || q.includes('添いね') || q.includes('child')) {
+        answerText = "小学生以下のお子様は、保護者の方と同じベッドで添い寝される場合、宿泊料金は無料になります（アメニティは付きません）。朝食代は別途650円頂戴します。";
+        isPreciseMatch = true;
+      }
+      // 9. ビジネス・客室設備・Wi-Fi
+      else if (q.includes('ビジネス') || q.includes('デスク') || q.includes('wifi') || q.includes('有線') || q.includes('インターネット') || q.includes('出張') || q.includes('デスクライト') || q.includes('ズボンプレッサー')) {
+        answerText = "全室Wi-Fi・有線LAN完備、幅2m以上の大型デスクにデスクライトやコンセント、ズボンプレッサーや消臭スプレーを完備しておりビジネス出張に最適です！";
+        isPreciseMatch = true;
+      }
+      // 10. チェックイン・チェックアウト
+      else if (q.includes('チェックイン') || q.includes('チェックアウト') || q.includes('時間') || q.includes('checkin') || q.includes('checkout')) {
+        answerText = "チェックインは15:00から、チェックアウトは11:00まででございます。";
+        isPreciseMatch = true;
+      }
+      // 11. 駐車場
+      else if (q.includes('駐車場') || q.includes('駐車') || q.includes('車') || q.includes('parking') || q.includes('car')) {
+        answerText = "普通乗用車用の無料駐車場を完備しております（先着順）。大型車や中型車の場合は事前にお電話にてご相談ください。";
+        isPreciseMatch = true;
+      }
+      // 12. アクセス・駅・行き方
+      else if (q.includes('アクセス') || q.includes('駅') || q.includes('行き方') || q.includes('場所') || q.includes('住所') || q.includes('那須塩原') || q.includes('access') || q.includes('station')) {
+        answerText = "那須塩原駅の東口から徒歩3分でございます！住所は栃木県那須塩原市方京1-1-10でございます。";
+        isPreciseMatch = true;
+      }
+
+      // ==========================================
+      // RAG（上記辞書）にマッチしない場合の一律フォールバック（LLMへの問い合わせを完全遮断）
+      // ==========================================
+      if (!isPreciseMatch) {
+        answerText = "ご質問ありがとうございます。あいにくその件につきましては詳細なデータが手元にございません。客室の電話機より内線9番でフロントまでおかけいただければ、スタッフが喜んで詳しくご案内いたします。";
       }
     }
 
-    // 2. テキスト＋音声の通常質問リクエスト
-    console.log(`[Concierge POST] Question: "${query}", mapped speaker: ${voicevoxSpeaker}`);
-    
-    // 超精密ダイレクトQ&Aテーブルでまず検索
-    let answerText = '';
-    const qLower = query.toLowerCase();
-    const matchedQA = DIRECT_QA_MAP.find(qa => qa.match(qLower));
+    const isEnglish = voice.toLowerCase().includes('en-us');
+    const speechReadyText = optimizeTextForSpeech(answerText, isEnglish);
 
-    if (matchedQA) {
-      answerText = matchedQA.answer;
-      console.log(`[Concierge RAG] Direct QA Match: ${answerText}`);
-    } else {
-      // ローカルRAGフォールバック
-      const rawRagSection = localChromaRAGRaw(query);
-      answerText = formatRagResponse(rawRagSection);
-      console.log(`[Concierge RAG] Local RAG Fallback Match: ${answerText}`);
+    let audioContent = null;
+
+    // textOnly=true の場合はTTS合成を完全スキップして即時返却（フロントエンドが後から文ごとにttsOnly=trueで再取得するため不要）
+    if (textOnly) {
+      return NextResponse.json({ answer: answerText, audio: null, mimeType: 'audio/mp3' }, { headers: corsHeaders });
     }
 
-    // 初回音声合成も一緒に行う
-    const audioBase64 = await getVoicevoxAudioV3(answerText, voicevoxSpeaker, VOICEVOX_API_KEY);
+    // VOICEVOX APIのみで音声合成（3キーローテーション）
+    let voicevoxSpeaker = 2;
+    const vLower = voice.toLowerCase();
+    if (vLower.includes('achernar') || vLower.includes('aoi')) voicevoxSpeaker = 8;
+    else if (vLower.includes('zephyr') || vLower.includes('mei')) voicevoxSpeaker = 10;
+
+    const voicevoxKeys = [
+      process.env.VOICEVOX_API_KEY_1,
+      process.env.VOICEVOX_API_KEY_2,
+      process.env.VOICEVOX_API_KEY_3,
+    ].filter(k => k && k.trim());
+
+    console.log("[Backend TTS] VOICEVOX Speaker ID: " + voicevoxSpeaker + " / Keys available: " + voicevoxKeys.length);
+
+    for (let i = 0; i < voicevoxKeys.length; i++) {
+      try {
+        console.log("[Backend TTS] Trying VOICEVOX Key #" + (i + 1));
+        audioContent = await getVoicevoxAudioV1(speechReadyText, voicevoxSpeaker, voicevoxKeys[i]);
+        console.log("[Backend TTS] Success with Key #" + (i + 1));
+        break; // 成功したらループを抜ける
+      } catch (err) {
+        console.error("[Backend TTS] Key #" + (i + 1) + " failed:", err.message);
+        if (i === voicevoxKeys.length - 1) {
+          console.error("[Backend TTS] All VOICEVOX keys exhausted - text only response");
+        }
+      }
+    }
 
     return NextResponse.json({
       answer: answerText,
-      audio: audioBase64
-    });
+      audio: audioContent,
+      mimeType: 'audio/mp3'
+    }, { headers: corsHeaders });
 
   } catch (err) {
-    console.error("[Concierge Route Error]", err);
-    return NextResponse.json(
-      { error: 'Internal Server Error', message: err.message },
-      { status: 500 }
-    );
+    console.error('Handler error:', err);
+    return NextResponse.json({ error: err.toString() }, { status: 500, headers: corsHeaders });
   }
 }

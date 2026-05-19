@@ -286,16 +286,11 @@ export default function Home() {
     setMessages([]); // メッセージ配列をリセットして重複防止
     
     setTimeout(() => {
-      speakLastAnswerDynamic(greeting, nextLang);
+      speakLastAnswerDynamic(greeting, nextLang, undefined, true);
     }, 150);
   };
 
-  // ブラウザのローカルSpeechSynthesisによる音声合成フォールバック（AI音声はなくせの指示に基づき完全廃止）
-  const speakLocalFallback = (text, lang) => {
-    return new Promise((resolve) => {
-      resolve();
-    });
-  };
+  // ブラウザTTSフォールバックは使用しない（VOICEVOX APIのみ）
 
   // API音声再生（確実なBase64再生）
   const playGcpTtsAudio = (audioData, rate = playbackRateRef.current) => {
@@ -323,16 +318,20 @@ export default function Home() {
       try {
         audioRef.current.pause();
 
-        const byteCharacters = atob(audioData);
-        const byteNumbers = new Array(byteCharacters.length);
-        for (let i = 0; i < byteCharacters.length; i++) {
-          byteNumbers[i] = byteCharacters.charCodeAt(i);
+        if (audioData.startsWith('http://') || audioData.startsWith('https://') || audioData.startsWith('data:')) {
+          audioRef.current.src = audioData;
+        } else {
+          const byteCharacters = atob(audioData);
+          const byteNumbers = new Array(byteCharacters.length);
+          for (let i = 0; i < byteCharacters.length; i++) {
+            byteNumbers[i] = byteCharacters.charCodeAt(i);
+          }
+          const byteArray = new Uint8Array(byteNumbers);
+          // MIME type を付与しないとブラウザによっては再生に失敗する
+          const blob = new Blob([byteArray], { type: 'audio/mp3' });
+          objectUrl = URL.createObjectURL(blob);
+          audioRef.current.src = objectUrl;
         }
-        const byteArray = new Uint8Array(byteNumbers);
-        // MIME type を付与しないとブラウザによっては再生に失敗する
-        const blob = new Blob([byteArray], { type: 'audio/wav' });
-        objectUrl = URL.createObjectURL(blob);
-        audioRef.current.src = objectUrl;
         
         audioRef.current.volume = 1.0;
         audioRef.current.playbackRate = rate;
@@ -412,7 +411,7 @@ export default function Home() {
   };
 
   // ストリーミング・排他タイピング＆音声再生ループ
-  const speakLastAnswerDynamic = async (fullText, lang = currentLang, voice = currentVoice) => {
+  const speakLastAnswerDynamic = async (fullText, lang = currentLang, voice = currentVoice, isGreeting = false) => {
     if (!fullText) return;
     
     // 旧音声とタイピングセッションをクリアし、currentTypingText も完全に空にする
@@ -421,15 +420,20 @@ export default function Home() {
     // 今回のセッション専用のIDを取得
     const mySessionId = activeTypingSessionRef.current;
     
-    // stopSpeakingで上書きされたステータステキストを「考え中」に戻す（これがないと文字が消えてしまう）
-    setStatusText(lang === 'en' ? 'Thinking...' : '考え中・・・');
+    // 挨拶の場合は「考え中」ではなく「お話し中」を表示する
+    if (!isGreeting) {
+      setStatusText(lang === 'en' ? 'Thinking...' : '考え中・・・');
+    } else {
+      setStatusText(lang === 'en' ? 'Speaking...' : 'お話し中...');
+    }
 
-    const sentences = fullText.split(/([。！\?\n])/).reduce((acc, cur) => {
-      if (acc.length === 0) { acc.push(cur); } 
-      else {
-        const last = acc[acc.length - 1];
-        if (last === '。' || last === '！' || last === '?' || last === '\n' || last === '？') { acc.push(cur); } 
-        else { acc[acc.length - 1] += cur; }
+    const sentences = fullText.split(/([。！\?\n？、])/).reduce((acc, cur) => {
+      if (!cur) return acc;
+      if (cur.match(/^[。！\?\n？、]+$/)) { 
+        if (acc.length > 0) acc[acc.length - 1] += cur; 
+        else acc.push(cur);
+      } else {
+        acc.push(cur);
       }
       return acc;
     }, []).filter(s => s.trim() !== '');
@@ -456,12 +460,17 @@ export default function Home() {
 
       if (!audioData) {
         try {
-          // 余計なディレイは完全撤廃し、音声が準備でき次第すぐに再生する！
+          // VOICEVOX生成が遅い場合に永遠に待たされるのを防ぐため、2.5秒でタイムアウトしてテキスト表示へフォールバックする
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 2500);
+
           const res = await fetch('/api/concierge', { 
             method: 'POST', 
             headers: { 'Content-Type': 'application/json' }, 
-            body: JSON.stringify({ text: txt, voice, ttsOnly: true }) 
+            body: JSON.stringify({ text: txt, voice, ttsOnly: true }),
+            signal: controller.signal
           });
+          clearTimeout(timeoutId);
 
           if (res.ok) {
             const data = await res.json();
@@ -470,7 +479,9 @@ export default function Home() {
               voiceCacheRef.current[cacheKey] = audioData;
             }
           }
-        } catch (e) {}
+        } catch (e) {
+          console.warn("TTS generation timed out or failed, falling back to text-only typing:", e);
+        }
       }
 
       if (sentenceIndex + 1 < sentences.length) {
@@ -485,12 +496,13 @@ export default function Home() {
 
       if (audioData) {
         // 声と文字のタイピングは完全に同時！
+        setIsSpeaking(true);
         await Promise.all([
           typewriteSentence(txt, mySessionId),
           playGcpTtsAudio(audioData)
         ]);
       } else {
-        // 音声が万が一取得できなかった場合は文字のみで即時回答
+        // VOICEVOX音声取得失敗 → テキスト表示のみ（AI音声フォールバック無し）
         await typewriteSentence(txt, mySessionId);
       }
 
@@ -517,7 +529,7 @@ export default function Home() {
       const res = await fetch('/api/concierge', { 
         method: 'POST', 
         headers: { 'Content-Type': 'application/json' }, 
-        body: JSON.stringify({ text: query, voice: currentVoice }) 
+        body: JSON.stringify({ text: query, voice: currentVoice, textOnly: true }) 
       });
       if (res.ok) {
         const data = await res.json();
@@ -530,6 +542,10 @@ export default function Home() {
     if (!botAnswer) {
       botAnswer = currentLang === 'ja' ? UI_TEXT.ja.def : UI_TEXT.en.def;
     }
+
+    // テキスト取得完了と同時にisThinkingをfalseにする！
+    // これでローディングアニメーションが消え、チップスが戻る
+    setIsThinking(false);
 
     lastAnswerRef.current = botAnswer;
     await speakLastAnswerDynamic(botAnswer);
@@ -544,7 +560,7 @@ export default function Home() {
     // 重複を避けるため、初回起動時の挨拶は、メッセージリストとタイピングステートが完全に空の時のみキックする
     if (messages.length === 0 && !currentTypingText) {
       const greeting = UI_TEXT[currentLang].greeting;
-      speakLastAnswerDynamic(greeting);
+      speakLastAnswerDynamic(greeting, undefined, undefined, true);
     }
   };
 
