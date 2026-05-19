@@ -615,33 +615,92 @@ export async function POST(req) {
 
     // ttsOnly が true の場合のみ、音声生成を行う（二重生成によるAPIスパム判定を防ぐため）
     if (ttsOnly) {
-      let voicevoxSpeaker = 2; // 四国めたん
-      const vLower = voice.toLowerCase();
-      if (vLower.includes('achernar') || vLower.includes('aoi')) voicevoxSpeaker = 8; // 春日部つむぎ
-      else if (vLower.includes('zephyr') || vLower.includes('mei')) voicevoxSpeaker = 10; // 雨晴はう
+      const isEnglish = voice.toLowerCase().includes('en-us');
 
-      let isVoicevoxSuccess = false;
-      const VOICEVOX_API_KEY = (process.env.VOICEVOX_API_KEY || 'j-81N719n201661').trim();
-
-      // 1. 最優先：ローカル VOICEVOX（圧倒的に早いため、立ち上がっている場合はこれを最優先）
-      if (!isVoicevoxSuccess) {
-        try {
-          console.log(`[Next.js API] Synthesizing via local VOICEVOX...`);
-          const queryRes = await fetch(`http://localhost:50021/audio_query?text=${encodeURIComponent(speechReadyText)}&speaker=${voicevoxSpeaker}`, { method: 'POST' });
-          if (queryRes.ok) {
-            const queryJson = await queryRes.json();
-            const synthRes = await fetch(`http://localhost:50021/synthesis?speaker=${voicevoxSpeaker}`, { method: 'POST', headers: { 'Content-Type': 'application/json' } });
-            if (synthRes.ok) {
-              const arrayBuffer = await synthRes.arrayBuffer();
-              audioContent = Buffer.from(arrayBuffer).toString('base64');
-              isVoicevoxSuccess = true;
-              console.log(`[Next.js API] Local VOICEVOX generation successful!`);
+      if (isEnglish) {
+        // --- 英語の場合は Google Cloud TTS API を最優先で使用 ---
+        const GCP_KEY = (process.env.GCP_TTS_API_KEY || process.env.GOOGLE_CLOUD_API || '').trim();
+        if (GCP_KEY) {
+          try {
+            console.log(`[Next.js API] Synthesizing English via Google Cloud TTS. Voice: ${voice}`);
+            const gttsRes = await fetch(`https://texttospeech.googleapis.com/v1/text:synthesize?key=${GCP_KEY}`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                input: { text: speechReadyText },
+                voice: {
+                  languageCode: 'en-US',
+                  name: voice
+                },
+                audioConfig: {
+                  audioEncoding: 'MP3'
+                }
+              })
+            });
+            if (gttsRes.ok) {
+              const gttsData = await gttsRes.json();
+              if (gttsData.audioContent) {
+                audioContent = gttsData.audioContent; // Base64
+                console.log(`[Next.js API] Google Cloud TTS generation successful!`);
+              }
+            } else {
+              const errText = await gttsRes.text();
+              console.error(`[Next.js API] Google Cloud TTS failed:`, errText);
             }
+          } catch (err) {
+            console.error('[Next.js API] Google Cloud TTS error:', err);
           }
-        } catch (err) {
-          console.warn("[Next.js API] Local VOICEVOX not available. Falling back to cloud APIs...");
+        } else {
+          console.warn("[Next.js API] GCP_TTS_API_KEY or GOOGLE_CLOUD_API is not configured. English voice bypassed.");
         }
-      }
+      } else {
+        // --- 日本語の場合は VOICEVOX 処理 ---
+        let voicevoxSpeaker = 2; // 四国めたん
+        const vLower = voice.toLowerCase();
+        if (vLower.includes('achernar') || vLower.includes('aoi')) voicevoxSpeaker = 8; // 春日部つむぎ
+        else if (vLower.includes('zephyr') || vLower.includes('mei')) voicevoxSpeaker = 10; // 雨晴はう
+
+        let isVoicevoxSuccess = false;
+        const VOICEVOX_API_KEY = (process.env.VOICEVOX_API_KEY || 'j-81N719n201661').trim();
+
+        // 1. 最優先：ローカル VOICEVOX（タイムアウトを設定して本番環境での遅延・フリーズを防ぐ）
+        if (!isVoicevoxSuccess) {
+          try {
+            console.log(`[Next.js API] Synthesizing via local VOICEVOX...`);
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 1200); // 1.2秒で即時諦めてクラウドへ
+
+            const queryRes = await fetch(`http://localhost:50021/audio_query?text=${encodeURIComponent(speechReadyText)}&speaker=${voicevoxSpeaker}`, { 
+              method: 'POST',
+              signal: controller.signal
+            });
+            clearTimeout(timeoutId);
+
+            if (queryRes.ok) {
+              const queryJson = await queryRes.json();
+              
+              const synthController = new AbortController();
+              const synthTimeoutId = setTimeout(() => synthController.abort(), 2500); // 合成は2.5秒で諦める
+
+              const synthRes = await fetch(`http://localhost:50021/synthesis?speaker=${voicevoxSpeaker}`, { 
+                method: 'POST', 
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(queryJson),
+                signal: synthController.signal
+              });
+              clearTimeout(synthTimeoutId);
+
+              if (synthRes.ok) {
+                const arrayBuffer = await synthRes.arrayBuffer();
+                audioContent = Buffer.from(arrayBuffer).toString('base64');
+                isVoicevoxSuccess = true;
+                console.log(`[Next.js API] Local VOICEVOX generation successful!`);
+              }
+            }
+          } catch (err) {
+            console.warn("[Next.js API] Local VOICEVOX not available or timed out. Falling back to cloud APIs...");
+          }
+        }
 
       // 2. 第二優先：VOICEVOX_API_KEY を使用した tts.quest v2 API
       if (!isVoicevoxSuccess && VOICEVOX_API_KEY) {

@@ -1010,9 +1010,9 @@ export default function Home() {
                 </div>
               )}
 
-              {/* クイック質問チップス（確定済みメッセージが無く、現在何もタイピング中でない初期時、またはやり取りの区切りに表示） */}
-              {messages.length === 0 && !currentTypingText && !isThinking && (
-                <div className="ai-suggestions">
+              {/* クイック質問チップス（AIが話していない入力待ちの時は、常に下に表示する） */}
+              {!currentTypingText && !isThinking && (
+                <div className="ai-suggestions" style={{ marginTop: '12px' }}>
                   {UI_TEXT[currentLang].chips.map((chip, idx) => (
                     <button key={idx} className="ai-chip" onClick={() => handleChipClick(chip)}>{chip}</button>
                   ))}
