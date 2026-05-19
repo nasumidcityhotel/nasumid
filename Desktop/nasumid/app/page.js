@@ -487,6 +487,7 @@ export default function Home() {
 
       // ここで初めて「考え中」を消す！（最低1.2秒はアニメーションが表示された後）
       setIsThinking(false);
+      setStatusText(lang === 'en' ? 'Speaking...' : 'お話し中...');
 
       if (audioData) {
         // 声と文字のタイピングは完全に同時！
@@ -920,7 +921,17 @@ export default function Home() {
             
             <div style={{ flex: 1 }}>
               <div className="ai-chat-name" id="aiChatName">{UI_TEXT[currentLang].name}</div>
-              <div className="ai-chat-status" id="aiChatStatus">{statusText}</div>
+              <div className="ai-chat-status" id="aiChatStatus" style={{ display: 'flex', alignItems: 'center', height: '18px' }}>
+                {(statusText.includes('考え中') || statusText.includes('Thinking') || statusText.includes('考えています')) ? (
+                  <span style={{ display: 'inline-flex', gap: '3px', alignItems: 'center' }}>
+                    <span style={{ width: '6px', height: '6px', backgroundColor: 'rgba(255,255,255,0.85)', borderRadius: '50%', animation: 'bounce 1.4s infinite ease-in-out both' }}></span>
+                    <span style={{ width: '6px', height: '6px', backgroundColor: 'rgba(255,255,255,0.85)', borderRadius: '50%', animation: 'bounce 1.4s infinite ease-in-out both', animationDelay: '0.16s' }}></span>
+                    <span style={{ width: '6px', height: '6px', backgroundColor: 'rgba(255,255,255,0.85)', borderRadius: '50%', animation: 'bounce 1.4s infinite ease-in-out both', animationDelay: '0.32s' }}></span>
+                  </span>
+                ) : (
+                  <span>{statusText}</span>
+                )}
+              </div>
             </div>
             
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginRight: '25px' }}>
@@ -992,9 +1003,9 @@ export default function Home() {
                     }
                   `}</style>
                   <div className="ai-msg-bubble" style={{ display: 'flex', gap: '4px', padding: '12px 18px', alignItems: 'center', height: '36px' }}>
-                    <span style={{ width: '8px', height: '8px', backgroundColor: 'var(--brand)', borderRadius: '50%', animation: 'bounce 1.4s infinite ease-in-out both' }}></span>
-                    <span style={{ width: '8px', height: '8px', backgroundColor: 'var(--brand)', borderRadius: '50%', animation: 'bounce 1.4s infinite ease-in-out both', animationDelay: '0.16s' }}></span>
-                    <span style={{ width: '8px', height: '8px', backgroundColor: 'var(--brand)', borderRadius: '50%', animation: 'bounce 1.4s infinite ease-in-out both', animationDelay: '0.32s' }}></span>
+                    <span style={{ width: '8px', height: '8px', backgroundColor: 'var(--c-accent)', borderRadius: '50%', animation: 'bounce 1.4s infinite ease-in-out both' }}></span>
+                    <span style={{ width: '8px', height: '8px', backgroundColor: 'var(--c-accent)', borderRadius: '50%', animation: 'bounce 1.4s infinite ease-in-out both', animationDelay: '0.16s' }}></span>
+                    <span style={{ width: '8px', height: '8px', backgroundColor: 'var(--c-accent)', borderRadius: '50%', animation: 'bounce 1.4s infinite ease-in-out both', animationDelay: '0.32s' }}></span>
                   </div>
                 </div>
               )}
