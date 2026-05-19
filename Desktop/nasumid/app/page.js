@@ -16,8 +16,8 @@ const UI_TEXT = {
     speedFastest: '最速 (1.5x)', 
     femaleBtn: '👩 女性', 
     maleBtn: '👨 男性', 
-    chips: ['朝食は何時から？', 'おすすめの温泉は？', 'チェックインの時間', '駐車場はある？', '駅からの行き方', '部屋の設備は？'], 
-    greeting: 'こんにちは！那須ミッドシティホテル公式マスコット「もりなすちゃん」です🍆 何でもお気軽にお尋ねくださいね。', 
+    chips: ['朝食は何時から？', 'おすすめの温泉は？', '自販機・製氷機・電子レンジは？', 'コインランドリーは？', '喫煙所はありますか？'], 
+    greeting: 'こんにちは！那須ミッドシティホテル公式マスコット「もりなすちゃん」です🍆 どんなことでもお気軽にお尋ねくださいね。', 
     def: 'ご質問ありがとうございます。その件につきましては、フロントのスタッフが喜んで詳しくご案内いたします。お電話は、0287-67-1400 まで、いつでもお気軽にお問い合わせください。' 
   },
   en: { 
@@ -33,7 +33,7 @@ const UI_TEXT = {
     speedFastest: 'Fastest (1.5x)', 
     femaleBtn: '👩 Female', 
     maleBtn: '👨 Male', 
-    chips: ['Breakfast time?', 'Recommend Onsen?', 'Check-in time?', 'Is parking free?', 'How to go from station?', 'Room amenities?'], 
+    chips: ['Breakfast time?', 'Recommend Onsen?', 'Vending machine & microwave?', 'Coin laundry?', 'Is there a smoking area?'], 
     greeting: 'Hello! I\'m "Mori-Nasu-chan", the official mascot of Nasu Midcity Hotel🍆 Please feel free to ask about breakfast, hot springs, access, or anything else.', 
     def: 'Thank you for your question. Our front desk staff will be happy to assist you in detail. Please feel free to call us at +81-287-67-1400 anytime.' 
   }
