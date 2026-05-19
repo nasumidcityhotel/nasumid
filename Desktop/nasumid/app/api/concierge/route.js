@@ -746,8 +746,9 @@ export async function POST(req) {
         }
       }
     }
+  }
 
-    return NextResponse.json({
+  return NextResponse.json({
       answer: answerText,
       audio: audioContent,
       mimeType: 'audio/mp3'

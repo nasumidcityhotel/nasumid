@@ -456,15 +456,12 @@ export default function Home() {
 
       if (!audioData) {
         try {
-          // 音声生成（ローカルの場合は数ミリ秒で終わってしまう）と、最低限の「考え中演出時間」を並列で待つ
-          const [res] = await Promise.all([
-            fetch('/api/concierge', { 
-              method: 'POST', 
-              headers: { 'Content-Type': 'application/json' }, 
-              body: JSON.stringify({ text: txt, voice, ttsOnly: true }) 
-            }),
-            new Promise(r => setTimeout(r, 1200)) // 最低1.2秒は「・・・」を見せて人間らしさを演出！
-          ]);
+          // 余計なディレイは完全撤廃し、音声が準備でき次第すぐに再生する！
+          const res = await fetch('/api/concierge', { 
+            method: 'POST', 
+            headers: { 'Content-Type': 'application/json' }, 
+            body: JSON.stringify({ text: txt, voice, ttsOnly: true }) 
+          });
 
           if (res.ok) {
             const data = await res.json();
@@ -474,9 +471,6 @@ export default function Home() {
             }
           }
         } catch (e) {}
-      } else {
-        // キャッシュにヒットした場合も、一瞬で話し始めると不自然なので少し待つ
-        await new Promise(r => setTimeout(r, 800));
       }
 
       if (sentenceIndex + 1 < sentences.length) {
