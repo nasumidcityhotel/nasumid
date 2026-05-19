@@ -460,9 +460,9 @@ export default function Home() {
 
       if (!audioData) {
         try {
-          // VOICEVOX生成が遅い場合に永遠に待たされるのを防ぐため、2.5秒でタイムアウトしてテキスト表示へフォールバックする
+          // VOICEVOX生成が遅い場合に永遠に待たされるのを防ぐため、8秒でタイムアウトしてテキスト表示へフォールバックする
           const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 2500);
+          const timeoutId = setTimeout(() => controller.abort(), 8000);
 
           const res = await fetch('/api/concierge', { 
             method: 'POST', 

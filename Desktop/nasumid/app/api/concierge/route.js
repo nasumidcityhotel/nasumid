@@ -84,6 +84,11 @@ function optimizeTextForSpeech(text, isEnglish = false) {
   optimized = optimized.replace(/[🌸💎❄️🎀👑🌼⭐🌟✨🦊💡🍀🎵👀👩👨🏨📞📱]/g, '');
   optimized = optimized.replace(/[\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF]/g, '');
 
+  // 10. 最後の安全対策：半角アルファベット・記号の全消去（VOICEVOXクラッシュ対策）
+  optimized = optimized.replace(/2m/gi, 'にメートル');
+  optimized = optimized.replace(/[a-zA-Z]/g, '');
+  optimized = optimized.replace(/[-_]/g, '');
+
   return optimized;
 }
 
