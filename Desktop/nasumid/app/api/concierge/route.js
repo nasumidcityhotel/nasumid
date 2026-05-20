@@ -213,6 +213,7 @@ export async function POST(req) {
     }
 
     const isEnglish = voice.toLowerCase().includes('en-us');
+    const isGoogleVoice = voice === 'ja-JP-Neural2-F';
     
     // ==========================================
     // 英語翻訳の適用 (ttsOnlyの時は既に翻訳済みなのでスキップ)
@@ -243,17 +244,20 @@ export async function POST(req) {
       return NextResponse.json({ answer: answerText, audio: null, mimeType: 'audio/mp3' }, { headers: corsHeaders });
     }
 
-    // 英語の場合はVOICEVOXが一切非対応（英単語を処理できない）ため、Google Cloud TTSの高音質・高音（可愛い系）ボイスを使用する
-    if (isEnglish && process.env.GCP_TTS_API_KEY) {
-      console.log("[Backend TTS] Using Google Cloud TTS for English character voice");
+    // 英語、または手動でGoogle音声（みどり）が選ばれた場合はGoogle Cloud TTSを使用
+    if ((isEnglish || isGoogleVoice) && process.env.GCP_TTS_API_KEY) {
+      console.log("[Backend TTS] Using Google Cloud TTS");
       try {
         const gcpUrl = `https://texttospeech.googleapis.com/v1/text:synthesize?key=${process.env.GCP_TTS_API_KEY}`;
+        const languageCode = isEnglish ? 'en-US' : 'ja-JP';
+        const voiceName = isEnglish ? 'en-US-Neural2-F' : 'ja-JP-Neural2-B'; // 日本語の高音質女性ボイスはBが正解
+        
         const gcpReq = {
           input: { text: speechReadyText },
-          voice: { languageCode: 'en-US', name: 'en-US-Neural2-F' }, // Fは女性の高音ボイス
+          voice: { languageCode: languageCode, name: voiceName },
           audioConfig: { 
             audioEncoding: 'MP3',
-            speakingRate: 1.1, // 少し早め
+            speakingRate: 1.1, 
             pitch: 4.0 // ピッチを上げてアニメキャラクター（さくら）に近づける
           }
         };
@@ -266,13 +270,15 @@ export async function POST(req) {
         if (gcpRes.ok) {
           const gcpData = await gcpRes.json();
           audioContent = gcpData.audioContent;
-          console.log("[Backend TTS] Success with GCP TTS English");
+          console.log("[Backend TTS] Success with GCP TTS");
+        } else {
+          console.error("[Backend TTS] GCP TTS Error:", await gcpRes.text());
         }
       } catch (gcpErr) {
-        console.error("[Backend TTS] GCP TTS English Exception:", gcpErr.message);
+        console.error("[Backend TTS] GCP TTS Exception:", gcpErr.message);
       }
-    } else if (!isEnglish) {
-      // 日本語の場合はVOICEVOX APIのみで音声合成（3キーローテーション）
+    } else {
+      // VOICEVOX APIのみで音声合成（3キーローテーション）
       let voicevoxSpeaker = 2;
       const vLower = voice.toLowerCase();
       if (vLower.includes('achernar') || vLower.includes('aoi')) voicevoxSpeaker = 8;

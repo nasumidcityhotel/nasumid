@@ -44,12 +44,14 @@ const VOICES_DICT = {
     female: [
       { value: 'ja-JP-Chirp3-HD-Aoede', label: 'さくら (明るく上品な妖精 🌸)' }, 
       { value: 'ja-JP-Chirp3-HD-Achernar', label: 'あおい (しっとり落ち着いた妖精 💎)' }, 
-      { value: 'ja-JP-Chirp3-HD-Zephyr', label: 'めい (ふんわり愛らしい妖精 ❄️)' }
+      { value: 'ja-JP-Chirp3-HD-Zephyr', label: 'めい (ふんわり愛らしい妖精 ❄️)' },
+      { value: 'ja-JP-Neural2-F', label: 'みどり (安定・高音質 🍀)' }
     ], 
     male: [
       { value: 'ja-JP-Chirp3-HD-Aoede', label: 'さくら (明るく上品な妖精 🌸)' }, 
       { value: 'ja-JP-Chirp3-HD-Achernar', label: 'あおい (しっとり落ち着いた妖精 💎)' }, 
-      { value: 'ja-JP-Chirp3-HD-Zephyr', label: 'めい (ふんわり愛らしい妖精 ❄️)' }
+      { value: 'ja-JP-Chirp3-HD-Zephyr', label: 'めい (ふんわり愛らしい妖精 ❄️)' },
+      { value: 'ja-JP-Neural2-F', label: 'みどり (安定・高音質 🍀)' }
     ] 
   },
   en: { 
@@ -984,6 +986,11 @@ export default function Home() {
                 ))}
               </select>
             </div>
+            {currentLang === 'ja' && (
+              <div style={{ color: '#aaa', fontSize: '10px', marginTop: '4px', paddingLeft: '47px', lineHeight: '1.2' }}>
+                音声がでない場合は、みどり（安定・高音質）に変えてお使いください。
+              </div>
+            )}
             
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '4px' }}>
               <span id="speedLabelEl" style={{ color: 'rgba(255,255,255,0.7)', fontSize: '12px', letterSpacing: '0.1em', minWidth: '35px' }}>{UI_TEXT[currentLang].speedLabel}</span>
