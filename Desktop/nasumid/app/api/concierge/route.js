@@ -155,7 +155,7 @@ export async function POST(req) {
       }
       // 3. 喫煙所
       else if (q.includes('喫煙') || q.includes('たばこ') || q.includes('タバコ') || q.includes('吸う') || q.includes('smoking') || q.includes('喫煙所') || q.includes('喫煙室')) {
-        answerText = "当ホテルは全室禁煙となっておりますが、1階のコインランドリーエリアに新設された専用の喫煙所をご利用いただけます。";
+        answerText = "1階のコインランドリーエリアに新設された専用の喫煙所をご利用いただけます。";
         isPreciseMatch = true;
       }
       // 4. 朝食（時間・メニューなど）
@@ -222,7 +222,7 @@ export async function POST(req) {
       if (answerText.includes('公式マスコット')) answerText = "Hello! I'm 'Mori-Nasu-chan', the official mascot of Nasu Midcity Hotel. Please feel free to ask me anything.";
       else if (answerText.includes('ドラム式洗濯乾燥機')) answerText = "We have coin-operated washer/dryers in the laundry area on the 1st floor. Available 24 hours.";
       else if (answerText.includes('電子レンジ')) answerText = "On the 1st floor laundry area, we have a vending machine, a free ice machine, and a microwave oven for you to use.";
-      else if (answerText.includes('専用の喫煙所')) answerText = "All rooms are non-smoking, but there is a designated smoking room in the 1st floor laundry area.";
+      else if (answerText.includes('専用の喫煙所')) answerText = "There is a designated smoking room available in the 1st floor laundry area.";
       else if (answerText.includes('朝食バイキング')) answerText = "Breakfast buffet is served free of charge for all guests from 6:45 to 9:30 AM at the 1st floor restaurant 'Au Revoir'.";
       else if (answerText.includes('夕食')) answerText = "Dinner is available at the 1st floor restaurant 'Au Revoir' from 5:30 PM to 9:00 PM.";
       else if (answerText.includes('大鷹')) answerText = "We don't have a public bath in the hotel, but 'Ootaka no Yu', a premium hot spring 10 minutes away by car, is highly recommended.";
