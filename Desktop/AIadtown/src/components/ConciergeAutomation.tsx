@@ -406,7 +406,7 @@ export default function ConciergeAutomation({ customPrompt, gcpTtsApiKey }: Conc
 
   return (
     <div className="concierge-automation">
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: '2rem' }}>
+      <div className="concierge-main-layout">
         
         {/* 左側: チャットシミュレータ本体 */}
         <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', height: '560px', padding: 0, overflow: 'hidden' }}>

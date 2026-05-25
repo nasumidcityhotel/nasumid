@@ -150,7 +150,7 @@ export default function GeoSimulator() {
 
   return (
     <div className="geo-simulator">
-      <div style={{ display: 'grid', gridTemplateColumns: '320px 1fr', gap: '2rem' }}>
+      <div className="geo-main-layout">
         
         {/* 左側: 設定パネル */}
         <div className="glass-card">

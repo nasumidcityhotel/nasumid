@@ -617,3 +617,61 @@
   box-shadow: 0 0 15px rgba(255, 0, 127, 0.4) !important;
 }
 
+/* Responsive layouts for major grids */
+.coo-main-layout {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 2rem;
+}
+
+.concierge-main-layout {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 2rem;
+}
+
+.geo-main-layout {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 2rem;
+}
+
+.board-main-layout {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 2rem;
+}
+
+.kanban-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 1rem;
+}
+
+/* Tablet & Mobile styles */
+@media (max-width: 1024px) {
+  .board-main-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .coo-main-layout,
+  .concierge-main-layout,
+  .geo-main-layout {
+    grid-template-columns: 1fr !important;
+    gap: 1.5rem;
+  }
+  
+  .kanban-columns {
+    grid-template-columns: 1fr !important;
+    gap: 1.5rem;
+  }
+  
+  /* Concierge Chat Simulator auto height on mobile */
+  .concierge-automation .glass-card {
+    height: auto !important;
+  }
+}
+
+

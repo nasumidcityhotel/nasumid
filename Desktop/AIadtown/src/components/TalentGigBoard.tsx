@@ -52,7 +52,7 @@ export default function TalentGigBoard({ tasks, onMoveTask }: TalentGigBoardProp
 
   return (
     <div className="talent-gig-board">
-      <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '2rem' }}>
+      <div className="board-main-layout">
         
         {/* 左側: 専任スタッフアサインカンバン */}
         <div className="glass-card">
@@ -63,7 +63,7 @@ export default function TalentGigBoard({ tasks, onMoveTask }: TalentGigBoardProp
             スタッフの担当領域やスキルに応じて、AI選定・GEO対策部やデータ連携部の実務タスク（地道な運用代行など）を割り当てます。ステータスボタンでカードを移動できます。
           </p>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
+          <div className="kanban-columns">
             
             {/* 未着手 (To Do) */}
             <div style={{ background: 'rgba(5, 8, 20, 0.4)', borderRadius: '12px', padding: '1rem', border: '1px solid rgba(255,255,255,0.02)' }}>
