@@ -9,7 +9,7 @@ import TalentGigBoard from './components/TalentGigBoard';
 import CooCommandCenter from './components/CooCommandCenter';
 import { 
   Building2, Search, Database, MessageSquare, Briefcase, 
-  MapPin, Sparkles, Terminal
+  MapPin, Sparkles, Terminal, Menu, X
 } from 'lucide-react';
 
 type TabType = 'dashboard' | 'coo' | 'geo' | 'data' | 'concierge' | 'talent';
@@ -88,6 +88,7 @@ function App() {
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
   const [apiKey, setApiKey] = useState('');
   const [gcpTtsApiKey, setGcpTtsApiKey] = useState('');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   
   // Global states sync with AI Agent Generations (Load from LocalStorage)
   const [generatedJsonLd, setGeneratedJsonLd] = useState<string>(() => {
@@ -224,8 +225,25 @@ function App() {
 
   return (
     <div className="app-layout">
+      {/* スマホ用サイドバー背景オーバーレイ */}
+      {isSidebarOpen && (
+        <div 
+          className="sidebar-overlay" 
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
       {/* サイドバーナビゲーション */}
-      <aside className="app-sidebar">
+      <aside className={`app-sidebar ${isSidebarOpen ? 'open' : ''}`}>
+        {/* スマホ用の閉じるボタン */}
+        <button 
+          className="sidebar-close-btn"
+          onClick={() => setIsSidebarOpen(false)}
+          aria-label="メニューを閉じる"
+        >
+          <X className="w-5 h-5" />
+        </button>
+
         <div>
           <div className="logo-section">
             <div className="logo-icon">
@@ -239,7 +257,10 @@ function App() {
 
           <nav className="nav-menu">
             <button 
-              onClick={() => setActiveTab('dashboard')}
+              onClick={() => {
+                setActiveTab('dashboard');
+                setIsSidebarOpen(false);
+              }}
               className={`nav-item ${activeTab === 'dashboard' ? 'active' : ''}`}
             >
               <Building2 className="nav-icon" />
@@ -247,7 +268,10 @@ function App() {
             </button>
 
             <button 
-              onClick={() => setActiveTab('coo')}
+              onClick={() => {
+                setActiveTab('coo');
+                setIsSidebarOpen(false);
+              }}
               className={`nav-item ${activeTab === 'coo' ? 'active' : ''}`}
             >
               <Terminal className="nav-icon" style={{ color: apiKey ? 'var(--neon-cyan)' : 'inherit' }} />
@@ -255,7 +279,10 @@ function App() {
             </button>
 
             <button 
-              onClick={() => setActiveTab('geo')}
+              onClick={() => {
+                setActiveTab('geo');
+                setIsSidebarOpen(false);
+              }}
               className={`nav-item ${activeTab === 'geo' ? 'active' : ''}`}
             >
               <Search className="nav-icon" />
@@ -263,7 +290,10 @@ function App() {
             </button>
 
             <button 
-              onClick={() => setActiveTab('data')}
+              onClick={() => {
+                setActiveTab('data');
+                setIsSidebarOpen(false);
+              }}
               className={`nav-item ${activeTab === 'data' ? 'active' : ''}`}
             >
               <Database className="nav-icon" />
@@ -271,7 +301,10 @@ function App() {
             </button>
 
             <button 
-              onClick={() => setActiveTab('concierge')}
+              onClick={() => {
+                setActiveTab('concierge');
+                setIsSidebarOpen(false);
+              }}
               className={`nav-item ${activeTab === 'concierge' ? 'active' : ''}`}
             >
               <MessageSquare className="nav-icon" />
@@ -279,7 +312,10 @@ function App() {
             </button>
 
             <button 
-              onClick={() => setActiveTab('talent')}
+              onClick={() => {
+                setActiveTab('talent');
+                setIsSidebarOpen(false);
+              }}
               className={`nav-item ${activeTab === 'talent' ? 'active' : ''}`}
             >
               <Briefcase className="nav-icon" />
@@ -307,8 +343,17 @@ function App() {
             <h2 className="gradient-text-neon">{headerInfo.title}</h2>
             <p>{headerInfo.subtitle}</p>
           </div>
-          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-            <span className="badge badge-primary">Ver 2.0 (アップデート版)</span>
+          <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+            <span className="badge badge-primary" style={{ whiteSpace: 'nowrap' }}>Ver 2.0 (アップデート版)</span>
+            
+            {/* スマホ用ハンバーガーメニューボタン（三本線） */}
+            <button 
+              className="menu-toggle-btn"
+              onClick={() => setIsSidebarOpen(true)}
+              aria-label="メニューを開く"
+            >
+              <Menu className="w-6 h-6" />
+            </button>
           </div>
         </header>
 
