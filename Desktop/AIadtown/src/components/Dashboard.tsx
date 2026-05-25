@@ -63,7 +63,7 @@ export default function Dashboard() {
       role: '「AI集客支援サービス」の実践部隊',
       description: '「AIに選ばれなければ、存在しないも同然。」を現実の店舗に導入し、売上を爆発させる実務部隊。クライアントのGoogleビジネスプロフィールの最適化、SNS自動化、Web情報の構造化を徹底実行します。',
       synergy: [
-        '【スクール連携】スクール受講生（協業プラン）をこの部署のアシスタントとして参画させ、地道な運用代行業務（口コミ対策や写真投稿など）をリアルな有料案件として発注。'
+        '【スタッフ連携】専任スタッフ（稼働パートナー）をこの部署のアシスタントとして参画させ、地道な運用代行業務（口コミ対策や写真投稿など）をリアルな有料案件として発注。'
       ],
       gig: 'Googleビジネスプロフィール更新、店舗写真のAI最適化投稿代行、口コミ改善実務など。',
       kpi: 'クライアント店舗平均AI推薦順位: 1.4位 / GEO対策維持率: 94%',
@@ -76,7 +76,7 @@ export default function Dashboard() {
       role: '「AI実践スクール」の運営·人材アサイン',
       description: '株式会社adtown会議室でのリアル講義（6ヶ月、月2回、1回3時間）の進行管理。受講生（独立志望の個人、自社導入目的の経営者）のスキル・課題の管理を行います。',
       synergy: [
-        '受講生の習熟度に応じて、②のデータ入力や、③のGEO対策実務へ適切に人材をアサイン（配置）し、受講中に実績と報酬を積ませるハブとなります。'
+        'スタッフの習熟度に応じて、②のデータ入力や、③のGEO対策実務へ適切に人材をアサイン（配置）し、実務で実績と報酬を積ませるハブとなります。'
       ],
       kpi: 'スクール卒業率: 92% / 受講中案件アサイン率: 85%',
       icon: <Award className="w-6 h-6" />,
@@ -100,7 +100,7 @@ export default function Dashboard() {
       role: 'お金の回収·スクール生への報酬分配（自動化）',
       description: 'スクール運営、AI集客サービス、既存メディアの広告収入における、すべてのお金の流れの完全自動化・一元管理を行います。',
       synergy: [
-        'Stripe等を用いた先行自動回収により未回収リスクをゼロにし、クラウドタスクシステムと連動してスクール生への報酬をミスなく自動計算・分配します。'
+        'Stripe等を用いた先行自動回収により未回収リスクをゼロにし、クラウドタスクシステムと連動して稼働パートナーへの報酬をミスなく自動計算・分配します。'
       ],
       kpi: '未回収金発生率: 0.0% / 分配処理工数: 95%削減',
       icon: <Wallet className="w-6 h-6" />,
@@ -125,18 +125,18 @@ export default function Dashboard() {
       dept: 'メディア＆AIクロスマーケティング部'
     },
     {
-      title: '4. スクールでの実践人材育成',
-      desc: '月2回×3時間のリアル講義でスクール生を育成。実績を積ませるため実務へアサイン。',
+      title: '4. 実践人材育成',
+      desc: '月2回×3時間のリアル講義でスタッフを育成。実績を積ませるため実務へアサイン。',
       dept: 'AI利益改善スクール運営課'
     },
     {
-      title: '5. スクール生協業によるGEO実務',
-      desc: '受講生がアシスタントとして口コミ改善や写真投稿などの運用実務を実行、成果を創出。',
+      title: '5. パートナー協業によるGEO実務',
+      desc: 'スタッフがアシスタントとして口コミ改善や写真投稿などの運用実務を実行、成果を創出。',
       dept: 'AI選定・GEO対策部'
     },
     {
       title: '6. Stripe金流の自動回収と分配',
-      desc: 'Stripeで月額保守料や受講料を自動回収。受講生の作業完了を検知し報酬を自動分配。',
+      desc: 'Stripeで月額保守料やシステム利用料を自動回収。パートナーの作業完了を検知し報酬を自動分配。',
       dept: 'AI財務・マネジメント管理部'
     }
   ];
@@ -198,7 +198,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '2rem', marginTop: '1.5rem' }}>
+      <div className="board-main-layout" style={{ marginTop: '1.5rem' }}>
         {/* 組織図セクション */}
         <div className="glass-card">
           <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -330,7 +330,7 @@ export default function Dashboard() {
 
             {selectedDept.gig && (
               <div style={{ marginBottom: '1.5rem' }}>
-                <h4 style={{ fontSize: '0.85rem', color: 'var(--neon-orange)', fontWeight: 700, marginBottom: '0.25rem' }}>スクール生（協業パートナー）の実務</h4>
+                <h4 style={{ fontSize: '0.85rem', color: 'var(--neon-orange)', fontWeight: 700, marginBottom: '0.25rem' }}>専任スタッフ（稼働パートナー）の実務</h4>
                 <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', lineHeight: '1.5' }}>{selectedDept.gig}</p>
               </div>
             )}
