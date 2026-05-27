@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>那須ミッドシティホテル専用AI｜役員会議・AI組織・料金戦略</title>
+  <meta name="description" content="那須ミッドシティホテル専用AI組織ダッシュボード。CEO・COO・8つの専門AI部署からなる役員会AI、客室QR案内URLの最適化、Google AI Mode対策を支援。" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="brand-card">
+        <div class="brand-mark">N</div>
+        <div>
+          <div class="eyebrow">Executive AI Board</div>
+          <h1>那須ミッドシティホテル AI役員会</h1>
+          <p>観光・出張を支える那須の拠点ホテル戦略</p>
+        </div>
+      </div>
+
+      <nav class="side-nav">
+        <a href="#overview"><i class="fas fa-chart-line"></i> 全体戦略</a>
+        <a href="#org-chart"><i class="fas fa-sitemap"></i> AI役員会・組織図</a>
+        <a href="#assistant"><i class="fas fa-robot"></i> 会議同席AI / 会議室</a>
+        <a href="#checklist"><i class="fas fa-check-double"></i> AI検索チェック</a>
+        <a href="#qr-guides-panel"><i class="fas fa-qrcode"></i> 客室QR案内</a>
+        <a href="#pricing"><i class="fas fa-calculator"></i> 料金シミュレーター</a>
+        <a href="#schema"><i class="fas fa-code"></i> 構造化データ</a>
+        <a href="#notes"><i class="fas fa-sticky-note"></i> 会議メモ</a>
+        <a href="#usage-guide"><i class="fas fa-info-circle"></i> 使用方法</a>
+      </nav>
+
+      <div class="info-card compact">
+        <div class="card-label">公式導線</div>
+        <a class="link-btn" target="_blank" rel="noreferrer" href="https://www.nasu-midcity.com/">公式ホームページ</a>
+        <a class="link-btn" target="_blank" rel="noreferrer" href="https://nasu-midcity-guide.netlify.app/">客室QR案内</a>
+      </div>
+
+      <div class="info-card compact">
+        <div class="card-label">このAIの役割</div>
+        <ul class="mini-list">
+          <li>CEO / COO 視点での経営アドバイス</li>
+          <li>8つの専門AI部署による多角的提言</li>
+          <li>複数AIが協調するAI役員会議</li>
+          <li>Netlify客室QR案内URLの最適化</li>
+        </ul>
+      </div>
+    </aside>
+
+    <main class="main">
+      <section class="hero" id="overview">
+        <div class="hero-copy">
+          <div class="badge">那須の拠点ホテル戦略</div>
+          <h2>「便利なビジネスホテル」から<br />「那須を動くための拠点ホテル」へ</h2>
+          <p>
+            那須ミッドシティホテル専用のAI組織を結成しました。CEO（経営判断）、COO（統括）、および最新AI影響、米国事例、マーケティング、AIエージェント対策、レストラン、客室案内等の8つのAI部署が連携し、ホテルの持続的成長をサポートします。
+          </p>
+          <div class="hero-actions">
+            <button class="primary-btn" data-fill-prompt="【会議論点5項目】那須ミッドシティホテルの今週の役員会議向けに、以下の形式で5項目の論点を作成してください。
+
+形式：
+■ 論点1：（タイトル）
+・現状：
+・課題：
+・今週やること：
+
+（論点2〜5も同じ形式で）
+
+文体：箇条書き中心、役員が5分で読めるレベルで簡潔に。前置き・結語・挨拶文は不要。すぐに論点から始めること。" data-auto-submit="true">今週の会議論点を作る</button>
+            <button class="ghost-btn" data-fill-prompt="【90日実行計画】那須ミッドシティホテルが『那須の拠点ホテル』としてAI検索で圧倒的な優位性を築くための90日計画を、以下の形式で作成してください。
+
+■ フェーズ1（1〜30日）：基盤整備
+・やること：
+・担当：
+・期待効果：
+
+■ フェーズ2（31〜60日）：実行
+・やること：
+・担当：
+・期待効果：
+
+■ フェーズ3（61〜90日）：改善・拡張
+・やること：
+・担当：
+・期待効果：
+
+文体：箇条書き中心、前置き・挨拶文は不要。すぐに計画から始めること。" data-auto-submit="true">90日計画を作る</button>
+          </div>
+        </div>
+        <div class="hero-panel">
+          <div class="stat-card">
+            <span>現サイトの主訴求</span>
+            <strong>駅近・朝食・ビジネス利便</strong>
+          </div>
+          <div class="stat-card">
+            <span>再定義キーワード</span>
+            <strong>那須の拠点ホテル</strong>
+          </div>
+          <div class="stat-card">
+            <span>優先運用先</span>
+            <strong>公式 / GBP / FAQ / QR / コミ返</strong>
+          </div>
+        </div>
+      </section>
+
+      <!-- AI役員会・組織図セクション -->
+      <section class="panel" id="org-chart">
+        <div class="org-header-container">
+          <div class="org-title-group">
+            <h2 class="org-title-main">那須ミッドシティホテル AI組織図</h2>
+            <p class="org-title-sub">AIの力で「選ばれる那須の拠点ホテル」へ</p>
+          </div>
+          
+          <div class="org-goals-box">
+            <div class="goals-head">
+              <i class="fas fa-bullseye"></i> 経営の目的（ゴール）
+            </div>
+            <ul class="goals-list">
+              <li>経営の最終判断・投資対効果の審査</li>
+              <li>那須の拠点ホテルとしての価値最大化</li>
+              <li>AIによる業務効率化と利益最大化</li>
+              <li>顧客満足・リピート率の向上</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="org-chart-box">
+          <div class="org-tree">
+            <!-- CEO -->
+            <div class="org-row">
+              <div class="org-node" id="node-ceo" data-dept="ceo">
+                <span class="node-avatar">👔</span>
+                <span class="node-name">CEO</span>
+                <span class="node-role">会長・社長・役員AI</span>
+              </div>
+            </div>
+            <!-- Connected line is drawn by css / border -->
+            <!-- COO -->
+            <div class="org-row">
+              <div class="org-node active" id="node-coo" data-dept="coo">
+                <span class="node-avatar">⚙️</span>
+                <span class="node-name">COO</span>
+                <span class="node-role">AI会議執行役員AI</span>
+              </div>
+            </div>
+            <!-- Departments -->
+            <div class="org-branches-container">
+              <div class="org-branches" id="org-departments-list">
+                <!-- JS handles dynamic rendering of 8 departments -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Selected AI details -->
+        <div class="org-detail-card" id="org-detail-card">
+          <div class="org-detail-avatar" id="org-detail-avatar">⚙️</div>
+          <div class="org-detail-body">
+            <div class="org-detail-title">
+              <h4 id="org-detail-name">COO (AI会議執行役員AI)</h4>
+              <span id="org-detail-role">会議ファシリテート・各部統括</span>
+            </div>
+            <div class="org-detail-mission-badge" id="org-detail-mission-badge" style="display: none;"></div>
+            <p class="org-detail-desc" id="org-detail-desc">各専門部署のAIが提出したデータや施策を集約・整合調整し、役員会議でそのまま決議可能な「COO役員会報告書」をとりまとめます。</p>
+            <div class="org-detail-tasks-section" id="org-detail-tasks-section" style="display: none;">
+              <h5><i class="fas fa-list-check"></i> 具体的な取り組み</h5>
+              <ul class="org-detail-tasks-list" id="org-detail-tasks-list"></ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- 共通データ基盤 -->
+        <div class="org-database-panel">
+          <h4 class="database-title"><i class="fas fa-database"></i> 共通データ基盤 <span>（全AI部署が連携方法を指定して活用）</span></h4>
+          <div class="database-info-meta">
+            <span class="meta-item"><span class="bullet email"></span>メール自動解析</span>
+            <span class="meta-item"><span class="bullet csv"></span>CSV手動インポート</span>
+            <span class="meta-item"><span class="bullet scrape"></span>Web自動スクレイピング</span>
+            <span class="meta-item"><span class="bullet api"></span>API自動連携</span>
+          </div>
+          <div class="database-badges-grid" id="database-badges-grid">
+            <!-- JS handles dynamic rendering from HOTEL_KNOWLEDGE.aiOrganization.sharedDatabase -->
+          </div>
+
+          <!-- 非APIデータ取込シミュレーター -->
+          <div class="sim-panel-container">
+            <h5 class="sim-panel-title"><i class="fas fa-plug-circle-exclamation"></i> 非APIデータ取込シミュレーター</h5>
+            <p class="sim-panel-desc">PMS/POSシステム等と外部連携APIで繋げない制約を想定し、現場オペレーションによるデータ同期をテスト体験できます。</p>
+            
+            <div class="sim-tabs">
+              <button class="sim-tab-btn active" id="tab-sim-csv"><i class="fas fa-file-csv"></i> CSVインポート (毎日)</button>
+              <button class="sim-tab-btn" id="tab-sim-email"><i class="fas fa-envelope-open-text"></i> メール通知解析 (即時)</button>
+              <button class="sim-tab-btn" id="tab-sim-scrape"><i class="fas fa-spider"></i> クローラー起動 (自動)</button>
+            </div>
+
+            <!-- 1. CSVアップロード -->
+            <div class="sim-content active" id="sim-content-csv">
+              <div class="sim-upload-area" id="csv-drop-zone">
+                <i class="fas fa-cloud-arrow-up upload-icon"></i>
+                <p>PMSやPOSからエクスポートした日報等のCSVファイルをここにドラッグ＆ドロップ</p>
+                <span>または</span>
+                <input type="file" id="csv-file-input" style="display: none;" accept=".csv" />
+                <button class="primary-btn compact-btn" onclick="document.getElementById('csv-file-input').click()">ファイルを選択</button>
+              </div>
+              <div class="sim-progress-box" id="csv-progress-box" style="display: none;">
+                <div class="progress-bar-container">
+                  <div class="progress-bar-fill" id="csv-progress-bar"></div>
+                </div>
+                <div class="progress-status" id="csv-progress-status">CSV解析中... 0%</div>
+              </div>
+              <div class="sim-result-box" id="csv-result-box" style="display: none;"></div>
+            </div>
+
+            <!-- 2. メール解析 -->
+            <div class="sim-content" id="sim-content-email">
+              <div class="sim-email-layout">
+                <div class="email-input-side">
+                  <label for="email-raw-text">予約通知メールのサンプルテキスト（編集してテスト可能）</label>
+                  <textarea id="email-raw-text" rows="8">From: じゃらんnet予約通知 <no-reply@jalan.net>
+Subject: 【じゃらんnet】ご予約確定通知 (那須ミッドシティホテル)
+----------------------------------------
+【予約番号】J98A412C
+【宿泊代表者名】那須太郎 様 (ナス タロウ)
+【宿泊開始日】2026年06月15日 (1泊)
+【部屋タイプ】禁煙シングルルーム (無料駐車場・無料朝食付)
+【プラン名】那須の拠点旅応援プラン (Aカード対象)
+【合計料金】8,450円 (消費税込)</textarea>
+                  <button class="primary-btn" id="run-email-parse-btn">メール解析を実行</button>
+                </div>
+                <div class="email-result-side">
+                  <div class="parsed-results" id="email-parsed-results">
+                    <p class="placeholder-text">左側のメールテキストを「解析」すると、AIの抽出データがここに表示されます。</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 3. Webスクレイピング -->
+            <div class="sim-content" id="sim-content-scrape">
+              <div class="sim-scrape-layout">
+                <div class="scrape-controls">
+                  <label>取得ターゲットの選択</label>
+                  <div style="display: flex; gap: 10px; margin-bottom: 12px; flex-wrap: wrap;">
+                    <label class="checkbox"><input type="checkbox" id="scrape-target-comp" checked /><span>競合ホテルの宿泊価格</span></label>
+                    <label class="checkbox"><input type="checkbox" id="scrape-target-gbp" checked /><span>Google口コミ・GBP写真</span></label>
+                    <label class="checkbox"><input type="checkbox" id="scrape-target-sns" checked /><span>那須観光イベント情報</span></label>
+                  </div>
+                  <button class="primary-btn" id="run-scraper-btn"><i class="fas fa-play"></i> クローラーを実行</button>
+                </div>
+                <div class="scrape-log-area">
+                  <div class="terminal-header">
+                    <span><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span></span>
+                    <span class="terminal-title">crawler.sh - 実行ログ</span>
+                  </div>
+                  <div class="terminal-body" id="scrape-log-terminal">
+                    <p class="system-ready">システムスタンバイ。クローラーを実行してください。</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 生み出す価値 & 最終ゴール -->
+        <div class="org-value-goal-grid">
+          <div class="org-value-panel">
+            <div class="value-badge-title">AI組織が生み出す価値</div>
+            <div class="value-grid">
+              <div class="value-card customer">
+                <h5><i class="fas fa-users-viewfinder"></i> お客様にとって</h5>
+                <ul>
+                  <li>最適な情報・プランに出会える</li>
+                  <li>快適で満足度の高い滞在</li>
+                  <li>便利でわかりやすい体験</li>
+                </ul>
+              </div>
+              <div class="value-card hotel">
+                <h5><i class="fas fa-hotel"></i> ホテルにとって</h5>
+                <ul>
+                  <li>公式予約率の向上</li>
+                  <li>利益率の最大化</li>
+                  <li>業務効率化・コスト削減</li>
+                </ul>
+              </div>
+              <div class="value-card area">
+                <h5><i class="fas fa-map-location-dot"></i> 地域・那須にとって</h5>
+                <ul>
+                  <li>観光・消費の活性化</li>
+                  <li>地域の魅力発信</li>
+                  <li>観光拠点としての価値向上</li>
+                </ul>
+              </div>
+              <div class="value-card staff">
+                <h5><i class="fas fa-user-gear"></i> スタッフにとって</h5>
+                <ul>
+                  <li>業務負担の軽減</li>
+                  <li>データに基づく判断が可能</li>
+                  <li>スキルアップ・働きやすい環境</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div class="org-goal-panel">
+            <div class="goal-icon"><i class="fas fa-star"></i></div>
+            <h4>最終ゴール</h4>
+            <p class="goal-text">那須の拠点ホテルとして<br>選ばれ続ける存在に！</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="grid two-col">
+        <article class="panel">
+          <div class="panel-head">
+            <h3>現状サイトの観測</h3>
+            <span class="panel-tag">クロール反映</span>
+          </div>
+          <div id="site-audit" class="audit-list"></div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-head">
+            <h3>役員向けの重要示唆</h3>
+            <span class="panel-tag">戦略要約</span>
+          </div>
+          <div id="executive-insights" class="insight-stack"></div>
+        </article>
+      </section>
+
+      <!-- 会議同席AI & 役員会議シミュレーター -->
+      <section class="panel" id="assistant">
+        <div class="panel-head wide">
+          <div>
+            <h3 id="assistant-title"><i class="fas fa-robot"></i> 会議同席AI (個別相談)</h3>
+            <p class="sub" id="assistant-sub">選択したAI部署の担当アドバイザーに直接相談できます</p>
+          </div>
+          <div class="tool-row" style="margin-top: 10px;">
+            <!-- Tabs -->
+            <button class="primary-btn" id="tab-consult-btn" style="min-height:36px; padding: 0 14px; font-size:12.5px;"><i class="fas fa-user-tie"></i> 個別相談</button>
+            <button class="ghost-btn" id="tab-meeting-btn" style="min-height:36px; padding: 0 14px; font-size:12.5px;"><i class="fas fa-users"></i> AI役員会議を招集</button>
+            
+            <label class="checkbox" style="margin-left: 10px;">
+              <input type="checkbox" id="use-web" checked />
+              <span>最新Web調査</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- 組織図で選択したノードIDを保持する隠しinput -->
+        <input type="hidden" id="selected-dept" value="coo" />
+
+        <!-- 1. 個別相談エリア -->
+        <div id="consultation-panel">
+          <div class="prompt-chips" id="prompt-chips"></div>
+
+          <div class="assistant-layout">
+            <div class="assistant-input">
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                <label for="user-prompt" style="margin: 0; font-weight:700;">相談内容 (<span id="consult-persona-label" style="color: var(--brand-dark);">COO</span> への相談)</label>
+                <button id="voice-input-btn" class="icon-btn" title="音声入力"><i class="fas fa-microphone"></i> 音声入力</button>
+              </div>
+              <textarea id="user-prompt" rows="7" placeholder="例：Google AI Modeで『那須観光の拠点に便利なホテル』と聞かれた時に、那須ミッドシティホテルが選ばれるための施策を教えてください。"></textarea>
+
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                <label for="meeting-context" style="margin: 0; font-weight:700;">会議補足メモ（自動録音の内容もここに入ります）</label>
+                <div class="action-row no-wrap" style="gap: 8px;">
+                  <button id="clear-context-btn" class="icon-btn ghost" title="メモをクリア" style="padding:4px 8px; font-size:11px;"><i class="fas fa-trash-alt"></i> クリア</button>
+                  <button id="meeting-mode-btn" class="icon-btn" title="議事録モードをオンにする" style="padding:4px 8px; font-size:11px;"><i class="fas fa-history"></i> 自動録音モード: OFF</button>
+                </div>
+              </div>
+              <textarea id="meeting-context" rows="4" placeholder="今月の稼働率、競合状況、役員の懸念点、直近の口コミ傾向などを貼り付けてください。"></textarea>
+
+              <div class="action-row">
+                <button id="ask-btn" class="primary-btn">専用AIに相談する</button>
+                <button id="clear-btn" class="ghost-btn">入力をクリア</button>
+              </div>
+            </div>
+
+            <div class="assistant-output">
+              <div class="output-meta">
+                <span id="status-pill" class="status-pill idle">待機中</span>
+                <span id="response-mode">モード: COO (AI会議執行役員)</span>
+                <button id="speak-btn" class="icon-btn" title="回答を読み上げる" style="margin-left: auto; display: none;"><i class="fas fa-volume-up"></i> 読み上げ</button>
+              </div>
+              <div id="assistant-answer" class="answer-box">ここにAIの回答が表示されます。</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. AI役員会議（シミュレーター）エリア (デフォルト非表示) -->
+        <div id="boardroom-panel" style="display: none;" class="boardroom-box panel">
+          <div style="margin-bottom: 16px;">
+            <label style="font-weight: 700; display: block; margin-bottom: 6px;">議題（テーマ）を選択してください</label>
+            <select id="meeting-theme-select" class="meeting-theme-select">
+              <option value="brand">1. Google AI Modeで選ばれるための「那須の拠点ホテル」定義浸透策</option>
+              <option value="ota-marketing">2. じゃらん・楽天トラベルの手数料を削減し公式予約率を最大化する戦略</option>
+              <option value="room-qr">3. 客室QR案内（Netlifyサイト）を活用した朝食・夕食・温泉の価値向上と売上最大化</option>
+              <option value="ai-agent">4. 顧客が「旅行AIエージェント」に予約を任せる時代に選ばれるためのSEO・構造化データ対策</option>
+              <option value="pricing-revenue">5. 稼働率・リードタイム・イベント需要と連動したダイナミックプライシングと宿泊プラン策定</option>
+              <option value="free-agenda">6. 自由議題 (補足メモや課題から、COO主導で全AI部署会議を開催)</option>
+            </select>
+          </div>
+
+          <div style="margin-bottom: 16px;">
+            <label style="font-weight: 700; display: block; margin-bottom: 6px;">会議に招集するAI部署 (複数選択可能)</label>
+            <div class="meeting-depts-selector" id="meeting-depts-selector">
+              <!-- JS renders department checklist pills here -->
+            </div>
+          </div>
+
+          <div style="margin-bottom: 16px;">
+            <label for="meeting-agenda-custom" style="font-weight: 700; display: block; margin-bottom: 6px;">会議用の補足指示 / 自由議題のテーマ (省略可能)</label>
+            <textarea id="meeting-agenda-custom" rows="3" placeholder="会議で優先して話し合いたい現状の課題、役員からの質問、独自の議題などを入力します。"></textarea>
+          </div>
+
+          <div class="action-row" style="margin-bottom: 20px;">
+            <button id="call-meeting-btn" class="primary-btn"><i class="fas fa-gavel"></i> AI役員会議を開催する</button>
+            <button id="clear-boardroom-btn" class="ghost-btn">設定リセット</button>
+          </div>
+
+          <!-- 会議ディスカッション結果表示 -->
+          <div id="boardroom-output" style="display: none;">
+            <div class="output-meta" style="margin-bottom: 12px;">
+              <span id="boardroom-status-pill" class="status-pill idle">待機中</span>
+              <span>COOファシリテート AI役員会議室</span>
+              <button id="speak-boardroom-btn" class="icon-btn" title="報告書を読み上げる" style="margin-left: auto; display: none;"><i class="fas fa-volume-up"></i> 報告書読み上げ</button>
+            </div>
+            
+            <!-- 各部署の発言ログ（チャットフロー） -->
+            <div class="discussion-flow" id="discussion-flow">
+              <!-- JS renders debate dialogue dynamically -->
+            </div>
+            
+            <!-- COO報告書（最終回答） -->
+            <div style="margin-top: 24px;">
+              <h4 style="color: var(--accent); font-weight:800; border-left: 4px solid var(--brand); padding-left: 10px; margin-bottom: 12px;">COO役員会提出 最終報告書</h4>
+              <div id="boardroom-final-report" class="answer-box">ここにAI会議の結果と、COO報告書が生成されます。</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="grid two-col" id="checklist">
+        <article class="panel">
+          <div class="panel-head">
+            <h3>AI検索・Google検索チェックリスト</h3>
+            <span class="panel-tag">実行管理</span>
+          </div>
+          <div id="checklist-container" class="checklist"></div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-head">
+            <h3>優先ソース</h3>
+            <span class="panel-tag">更新確認先</span>
+          </div>
+          <div id="source-list" class="source-list"></div>
+        </article>
+      </section>
+
+      <!-- 客室QRコード案内（Netlifyサイト）セクション -->
+      <section class="panel" id="qr-guides-panel">
+        <div class="panel-head">
+          <div>
+            <h3><i class="fas fa-qrcode"></i> 客室QR案内サイト一覧とAI改善提案</h3>
+            <p class="sub">現在稼働している那須ミッドシティホテルの案内サイト（Netlify）の構成と、AIへの直接改善アピール</p>
+          </div>
+          <span class="panel-tag">デジタルコンシェルジュ</span>
+        </div>
+        
+        <div class="qr-guides-grid" id="qr-guides-grid">
+          <!-- JS will render the 9 guides defined in HOTEL_KNOWLEDGE.qrGuides -->
+        </div>
+      </section>
+
+      <section class="grid two-col" id="pricing">
+        <article class="panel">
+          <div class="panel-head">
+            <h3>ダイナミックプライシング簡易シミュレーター</h3>
+            <span class="panel-tag">叩き台</span>
+          </div>
+          <div class="form-grid">
+            <label>
+              稼働率（%）
+              <input id="occ-input" type="number" value="82" min="0" max="100" />
+            </label>
+            <label>
+              現在ADR（円）
+              <input id="adr-input" type="number" value="8450" min="0" step="100" />
+            </label>
+            <label>
+              競合平均との差（円）
+              <input id="comp-input" type="number" value="1200" step="100" />
+            </label>
+            <label>
+              イベント強度（0-5）
+              <input id="event-input" type="number" value="2" min="0" max="5" />
+            </label>
+            <label>
+              予約ペース指数（-20〜20）
+              <input id="pace-input" type="number" value="6" min="-20" max="20" />
+            </label>
+            <label>
+              到着まで日数
+              <input id="lead-input" type="number" value="9" min="0" max="365" />
+            </label>
+          </div>
+          <div class="action-row top-gap">
+            <button id="simulate-btn" class="primary-btn">推奨価格を試算</button>
+          </div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-head">
+            <h3>試算結果</h3>
+            <span class="panel-tag">運用判断用</span>
+          </div>
+          <div id="pricing-output" class="pricing-output"></div>
+        </article>
+      </section>
+
+      <section class="panel" id="schema">
+        <div class="panel-head wide">
+          <div>
+            <h3>AI生成・構造化データ</h3>
+            <p class="sub">会議での決定事項をAIが読み取り、最新のJSON-LDコードを生成します</p>
+          </div>
+          <div class="action-row no-wrap" style="gap: 8px;">
+            <button id="generate-schema-btn" class="primary-btn"><i class="fas fa-magic"></i> AIに生成を依頼</button>
+            <button id="copy-schema-btn" class="ghost-btn">JSON-LDをコピー</button>
+          </div>
+        </div>
+        <div id="schema-status" style="margin-bottom: 12px; font-size: 13px; color: var(--brand); display: none;">AIが最新のコードを構築中...</div>
+        <pre id="schema-box" class="code-box">ここにAIが生成した構造化データが表示されます。</pre>
+      </section>
+
+      <section class="panel" id="notes">
+        <div class="panel-head wide">
+          <div>
+            <h3>会議メモ</h3>
+            <p class="sub">ブラウザに保存される簡易メモ</p>
+          </div>
+          <div class="action-row no-wrap">
+            <button id="save-notes-btn" class="primary-btn">保存</button>
+            <button id="clear-notes-btn" class="ghost-btn">消去</button>
+          </div>
+        </div>
+        <textarea id="notes-area" rows="10" placeholder="会議で出た論点、次回宿題、役員コメントなどを保存できます。"></textarea>
+      </section>
+
+      <section class="panel" id="ai-history">
+        <div class="panel-head wide">
+          <div>
+            <h3><i class="fas fa-clock-rotate-left"></i> AI相談履歴</h3>
+            <p class="sub">すべての相談と回答を自動保存。次回の会議でも参照できます。</p>
+          </div>
+          <div class="action-row no-wrap">
+            <button id="load-history-btn" class="ghost-btn"><i class="fas fa-upload"></i> 履歴を補足メモに読み込む</button>
+            <button id="clear-history-btn" class="ghost-btn" style="color: var(--danger); border-color: rgba(220,38,38,0.2);"><i class="fas fa-trash-alt"></i> 履歴を全消去</button>
+          </div>
+        </div>
+        <div id="history-container">
+          <p style="color: var(--muted); font-size: 14px; padding: 16px 0;">まだ履歴がありません。AIに相談すると、ここに自動保存されます。</p>
+        </div>
+      </section>
+
+      <section class="panel" id="usage-guide">
+        <div class="panel-head wide">
+          <div>
+            <h3>会議AIの使用方法</h3>
+            <p class="sub">那須ミッドシティホテル専用AI役員会を最大限に活用するためのガイド</p>
+          </div>
+          <span class="panel-tag">ユーザーマニュアル</span>
+        </div>
+
+        <div class="grid two-col">
+          <div class="audit-item">
+            <h4><i class="fas fa-sitemap"></i> 1. AI役員会・組織図の活用</h4>
+            <ul class="mini-list" style="margin-top: 10px;">
+              <li><strong>組織ノードの選択:</strong> CEO、COO、または8つの各専門AI部署（最新AI影響調査、米国最先端調査、マーケティング・OTA対策、AIエージェント予約対策など）をクリックして詳細を確認します。</li>
+              <li><strong>個別相談との連動:</strong> 選択された部署は「個別相談」の宛先になり、入力エリアもその部署に最適化されます。</li>
+            </ul>
+          </div>
+
+          <div class="audit-item">
+            <h4><i class="fas fa-users"></i> 2. AI役員会議を招集する</h4>
+            <ul class="mini-list" style="margin-top: 10px;">
+              <li><strong>議題と参加部署:</strong> 会議テーマを選ぶと、テーマに沿ったAI部署が自動で招集されます。必要に応じて追加や除外も可能です。</li>
+              <li><strong>模擬ディスカッション:</strong> 会議を実行すると、COOファシリテーションのもとで、招集部署が専門的な意見をぶつけ合います。</li>
+              <li><strong>COO報告書の出力:</strong> 最終的に、CEO上申用の「COO最終報告書（結論、根拠、今週やること）」が出力されます。</li>
+            </ul>
+          </div>
+
+          <div class="audit-item">
+            <h4><i class="fas fa-qrcode"></i> 3. 客室QR案内サイト一覧とAI改善提案</h4>
+            <ul class="mini-list" style="margin-top: 10px;">
+              <li><strong>Netlifyサイト一覧:</strong> 客室総合ガイド、館内情報、朝食、夕食など、ホストされているすべての案内サイトを一元管理します。</li>
+              <li><strong>AIへの改善相談:</strong> 「このURLの改善案を相談」ボタンを押すと、デジタルコンシェルジュ推進部がそのサイトの改善点をAI目線で解説します。</li>
+            </ul>
+          </div>
+
+          <div class="audit-item">
+            <h4><i class="fas fa-calculator"></i> 4. 料金シミュレーター & 構造化データ</h4>
+            <ul class="mini-list" style="margin-top: 10px;">
+              <li><strong>価格試算:</strong> 稼働率やADR等の数値を元に、RevPAR最大化のためのダイナミックプライシング価格を算出します。</li>
+              <li><strong>構造化データ生成:</strong> 会議メモや相談内容をAIが読み解き、公式サイト用の「Hotel構造化データ（JSON-LD）」を最新決定事項入りで自動コーディングします。</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="./knowledge.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>
