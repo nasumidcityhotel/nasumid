@@ -1,0 +1,9 @@
+{
+  "name": "nasu-midcity-executive-ai",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "netlify dev",
+    "start": "npx serve ."
+  }
+}
