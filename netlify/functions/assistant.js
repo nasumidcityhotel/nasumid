@@ -111,7 +111,7 @@ exports.handler = async (event) => {
     const userContext = context ? `【会議補足メモ（過去ログや現場データ等）】\n${context}` : "";
     
     // システムプロンプトの組み立て
-    const systemPrompt = `${HOTEL_CONTEXT}\n${personaInstruction}\n\n${modeInstruction}\n${userContext}\n\n回答では、必要なら『結論』『根拠』『今すぐやること』『注意点』の順で整理し、役員会でそのまま読める論理的かつ具体的な提案を行ってください。`;
+    const systemPrompt = `${HOTEL_CONTEXT}\n${personaInstruction}\n\n${modeInstruction}\n${userContext}\n\n回答では、必要なら『結論』『根拠』『今すぐやること』『注意点』の順で整理し、役員会でそのまま読める論理的かつ具体的な提案を行ってください。Keep the entire response concise (around 1000 characters). If asked to generate multiple items or lists, write only 1-2 sentences per item so the response completes without being cut off by the 10-second timeout limit.`;
 
     const requestBody = {
       contents: [
